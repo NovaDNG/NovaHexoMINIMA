@@ -1,13 +1,12 @@
 #title in header
-title: "Hi Folks."
+title: "NovaDNG Studio"
 
 #main info
 #owner
-owner: "I am Adi Sakti Jrs"
-email: test@test.test
-info: "A student and web developer from Indonesia 🇮🇩"
+owner: "NovaDNG"
+info: "A graphic design student"
 #description
-desc: "This is Minima, an undoubtedly simple and lightweight dark/light mode theme for Hexo. I created this from scratch using Skeleton CSS boilerplate. It only uses CSS and Vanilla JS, without using unnecessary third-party 'render-blocking' libraries! 😁"
+desc: "Nothing for now"
 
 #menu
 menu:
@@ -15,11 +14,11 @@ menu:
   About: /About
 
 #index/main page max show posts (in number)
-max_post: 4
+max_post: 7
 
 # Colors use hex color without #
 # Theme color
-tcolor: 0FA0CE
+tcolor: E2001A
 
 # Define path to user css
 #(could be also located outside of theme)
@@ -28,22 +27,20 @@ usercss: css/user.css
 
 # social profile at the footer/bottom
 footer: true
-placename: Earth
-placelink: https://en.wikipedia.org/wiki/Earth
-github: https://github.com/adisaktijrs
-linkedin: https://linkedin.com/in/adisaktijrs
-twitter: https://twitter.com/adisaktijrs
-instagram: https://instagram.com/adisaktijrs
+placename: UK
+placelink: https://goo.gl/maps/D5obNcpYpkkFEFSNA
+instagram: https://www.instagram.com/NovaDNG/
+twitter: https://twitter.com/NovaDNG
 
 # Misc
 nanobar: /js/nanobar.min.js
-switch_light: ☀️
-switch_dark: 🌑
+switch_light: ❂
+switch_dark: ❍
 
 # favicon
-favicon: /images/favicon.png
+favicon: /images/Cube 128.png
 # thumbnail
-thumbnail: /images/thumbnail.jpg
+# thumbnail: /images/thumbnail.jpg
 
 article:
   thumbnail: true
