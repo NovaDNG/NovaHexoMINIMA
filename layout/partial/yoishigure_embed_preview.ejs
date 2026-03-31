@@ -2,7 +2,7 @@
   <div class="yoi-embed-modal__backdrop" data-yoi-embed-close></div>
   <div class="yoi-embed-modal__dialog" role="dialog" aria-modal="true" aria-label="Tategaki preview">
     <div class="yoi-embed-modal__toolbar">
-      <button type="button" class="yoi-embed-modal__close" data-yoi-embed-close aria-label="關閉">×</button>
+      <button type="button" class="yoi-embed-modal__close" data-yoi-embed-close aria-label="關閉">⛌</button>
     </div>
     <iframe class="yoi-embed-modal__frame" title="Tategaki preview" loading="lazy"></iframe>
   </div>
@@ -10,25 +10,27 @@
 
 <script>
   (function () {
-    var modal = document.querySelector('.yoi-embed-modal');
+    const modal = document.querySelector('.yoi-embed-modal');
     if (!modal) return;
 
-    var frame = modal.querySelector('.yoi-embed-modal__frame');
-    var closeTriggers = Array.prototype.slice.call(modal.querySelectorAll('[data-yoi-embed-close]'));
-    var parsing = false;
-    var clickToken = 0;
-    var openingLink = null;
-    var fitTimer = 0;
-    var closeTimer = 0;
-    var embedPaneHeightPx = 0;
-    var EMBED_CLOSE_ANIM_MS = 200;
-    var MIN_TATEGAKI_WIDTH = 920;
-    var EMBED_VIEWPORT_RATIO = 0.94;
-    var EMBED_DEFAULT_WIDTH = 1120;
-    var EMBED_DEFAULT_HEIGHT_RATIO = 0.66;
+    const frame = modal.querySelector('.yoi-embed-modal__frame');
+    const dialog = modal.querySelector('.yoi-embed-modal__dialog');
+    const closeTriggers = [...modal.querySelectorAll('[data-yoi-embed-close]')];
+    let parsing = false;
+    let clickToken = 0;
+    let openingLink = null;
+    let fitTimer = 0;
+    let closeTimer = 0;
+    let embedPaneHeightPx = 0;
 
-    var styleHrefs = Array.prototype.slice.call(document.querySelectorAll('link[rel="stylesheet"]'))
-      .map(function (link) { return link.getAttribute('href'); })
+    const EMBED_CLOSE_ANIM_MS = 200;
+    const MIN_TATEGAKI_WIDTH = 920;
+    const EMBED_VIEWPORT_RATIO = 0.94;
+    const EMBED_DEFAULT_WIDTH = 1120;
+    const EMBED_DEFAULT_HEIGHT_RATIO = 0.66;
+
+    const styleHrefs = [...document.querySelectorAll('link[rel="stylesheet"]')]
+      .map(link => link.getAttribute('href'))
       .filter(Boolean);
 
     function escapeHtml(text) {
@@ -45,15 +47,14 @@
     }
 
     function isYoishigureDetailLink(anchor) {
-      if (!anchor || !anchor.href) return false;
-      if (anchor.closest('.yoi-float-nav')) return false;
-      if (anchor.closest('.yoi-embed-modal')) return false;
+      if (!anchor?.href) return false;
+      if (anchor.closest('.yoi-float-nav') || anchor.closest('.yoi-embed-modal')) return false;
       if (anchor.hasAttribute('download')) return false;
 
-      var rawHref = anchor.getAttribute('href') || '';
+      const rawHref = anchor.getAttribute('href') || '';
       if (!rawHref || rawHref.charAt(0) === '#') return false;
 
-      var url;
+      let url;
       try {
         url = new URL(anchor.href, window.location.href);
       } catch (e) {
@@ -69,14 +70,10 @@
     }
 
     function findTategakiScript(doc) {
-      var scripts = Array.prototype.slice.call(doc.querySelectorAll('script'));
-      for (var i = 0; i < scripts.length; i++) {
-        var text = scripts[i].textContent || '';
-        if (text.indexOf("var mobileQuery = window.matchMedia('(max-width: 900px)')") !== -1) {
-          return text;
-        }
-      }
-      return '';
+      const script = [...doc.querySelectorAll('script')].find(s =>
+        (s.textContent || '').includes("var mobileQuery = window.matchMedia('(max-width: 900px)')")
+      );
+      return script ? script.textContent : '';
     }
 
     function canOpenEmbedInViewport() {
@@ -84,11 +81,7 @@
     }
 
     function setOpeningState(next) {
-      if (next) {
-        document.documentElement.classList.add('yoi-embed-opening');
-      } else {
-        document.documentElement.classList.remove('yoi-embed-opening');
-      }
+      document.documentElement.classList.toggle('yoi-embed-opening', next);
     }
 
     function setOpeningLink(anchor) {
@@ -96,7 +89,7 @@
       openingLink = anchor;
       openingLink.classList.add('yoi-embed-opening-link');
       openingLink.style.setProperty('transition', 'none', 'important');
-      var computed = window.getComputedStyle(openingLink);
+      const computed = window.getComputedStyle(openingLink);
       openingLink.style.setProperty('color', computed.color, 'important');
       openingLink.style.setProperty('background-image', computed.backgroundImage, 'important');
       openingLink.style.setProperty('background-position', computed.backgroundPosition, 'important');
@@ -119,107 +112,95 @@
     }
 
     function applyFramePresetSize() {
-      var maxWidth = Math.floor(window.innerWidth * EMBED_VIEWPORT_RATIO);
-      var maxHeight = Math.floor(window.innerHeight * 0.86);
-      var width = Math.min(maxWidth, Math.max(MIN_TATEGAKI_WIDTH, EMBED_DEFAULT_WIDTH));
+      const maxWidth = Math.floor(window.innerWidth * EMBED_VIEWPORT_RATIO);
+      const maxHeight = Math.floor(window.innerHeight * 0.86);
+      const width = Math.min(maxWidth, Math.max(MIN_TATEGAKI_WIDTH, EMBED_DEFAULT_WIDTH));
       embedPaneHeightPx = computeEmbedPaneHeight();
-      var preferredHeight = Math.max(embedPaneHeightPx + 8, Math.floor(window.innerHeight * EMBED_DEFAULT_HEIGHT_RATIO));
-      var height = Math.min(maxHeight, Math.max(460, preferredHeight));
+      const preferredHeight = Math.max(embedPaneHeightPx + 8, Math.floor(window.innerHeight * EMBED_DEFAULT_HEIGHT_RATIO));
+      const height = Math.min(maxHeight, Math.max(460, preferredHeight));
       frame.style.width = width + 'px';
       frame.style.height = height + 'px';
       frame.style.opacity = '0';
     }
 
-    function buildEmbedHtml(stageHtml, scriptText, title, paneHeightPx) {
-      var cssLinks = styleHrefs.map(function (href) {
-        return '<link rel="stylesheet" href="' + escapeHtml(href) + '">';
-      }).join('\n');
+    function buildEmbedHtml(stageHtml, scriptText, title) {
+      const cssLinks = styleHrefs
+        .map(href => `<link rel="stylesheet" href="${escapeHtml(href)}">`)
+        .join('\n');
 
-      var themeBootstrap = [
-        '(function () {',
-        '  var media = window.matchMedia("(prefers-color-scheme: dark)");',
-        '  var stored = null;',
-        '  try { stored = localStorage.getItem("preferredTheme"); } catch (e) {}',
-        '  var isDark = stored === "dark" || (stored !== "light" && media.matches);',
-        '  if (isDark) {',
-        '    document.documentElement.classList.add("darkmode");',
-        '    if (document.body) document.body.classList.add("darkmode");',
-        '  }',
-        '})();'
-      ].join('\n');
+      const themeBootstrap = `(function () {
+  var media = window.matchMedia("(prefers-color-scheme: dark)");
+  var stored = null;
+  try { stored = localStorage.getItem("preferredTheme"); } catch (e) {}
+  var isDark = stored === "dark" || (stored !== "light" && media.matches);
+  if (isDark) {
+    document.documentElement.classList.add("darkmode");
+    if (document.body) document.body.classList.add("darkmode");
+  }
+})();`;
 
-      return [
-        '<!DOCTYPE html>',
-        '<html lang="en">',
-        '<head>',
-        '<meta charset="utf-8">',
-        '<meta name="viewport" content="width=device-width, initial-scale=1">',
-        '<base href="' + escapeHtml(window.location.origin + '/') + '">',
-        '<title>' + escapeHtml(title || 'Tategaki Preview') + '</title>',
-        cssLinks,
-        '<style>',
-        '  html, body {',
-        '    margin: 0;',
-        '    padding: 0;',
-        '    background: transparent;',
-        '    overflow: auto;',
-        '    min-height: 0 !important;',
-        '    height: auto !important;',
-        '  }',
-        '  .yoi-embed-root {',
-        '    width: 100%;',
-        '  }',
-        '  .yoi-embed-root .tategaki-stage {',
-        '    width: 100% !important;',
-        '    max-width: none !important;',
-        '    margin-top: 0 !important;',
-        '    margin-bottom: 0 !important;',
-        '    margin-left: 0 !important;',
-        '    margin-right: 0 !important;',
-        '  }',
-        '  .yoi-embed-root .tategaki-scroll {',
-        '    overflow-x: overlay !important;',
-        '    overflow-y: hidden !important;',
-        '    scrollbar-gutter: auto !important;',
-        '    padding-bottom: 0 !important;',
-        '  }',
-        '</style>',
-        '<script>' + safeInlineScript(themeBootstrap) + '<\/script>',
-        '</head>',
-        '<body class="page-yoishigure page-yoishigure-sub">',
-        '<div class="yoi-embed-root">',
-        stageHtml,
-        '</div>',
-        scriptText ? '<script>' + safeInlineScript(scriptText) + '<\/script>' : '',
-        '</body>',
-        '</html>'
-      ].join('\n');
+      return `<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="${escapeHtml(window.location.origin + '/')}">
+<title>${escapeHtml(title || 'Tategaki Preview')}</title>
+${cssLinks}
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: auto;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  .yoi-embed-root {
+    width: 100%;
+  }
+  .yoi-embed-root .tategaki-stage {
+    width: 100% !important;
+    max-width: none !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  .yoi-embed-root .tategaki-scroll {
+    overflow-x: overlay !important;
+    overflow-y: hidden !important;
+    scrollbar-gutter: auto !important;
+    padding-bottom: 0 !important;
+  }
+</style>
+<script>${safeInlineScript(themeBootstrap)}<\/script>
+</head>
+<body class="page-yoishigure page-yoishigure-sub">
+<div class="yoi-embed-root">
+${stageHtml}
+</div>
+${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
+</body>
+</html>`;
     }
 
     function fitFrameHeightToContent(token) {
-      if (token !== clickToken) return;
-      if (!frame || !frame.contentDocument) return;
+      if (token !== clickToken || !frame?.contentDocument) return;
 
-      var doc = frame.contentDocument;
-      var root = doc.querySelector('.yoi-embed-root');
-      var body = doc.body;
-      var html = doc.documentElement;
-      var measured = 0;
+      const doc = frame.contentDocument;
+      const root = doc.querySelector('.yoi-embed-root');
 
-      if (root && root.getBoundingClientRect) {
-        measured = Math.ceil(root.getBoundingClientRect().height);
-      }
+      let measured = root ? Math.ceil(root.getBoundingClientRect().height) : 0;
       if (!measured) {
         measured = Math.max(
-          body ? Math.ceil(body.scrollHeight) : 0,
-          html ? Math.ceil(html.scrollHeight) : 0
+          doc.body ? Math.ceil(doc.body.scrollHeight) : 0,
+          doc.documentElement ? Math.ceil(doc.documentElement.scrollHeight) : 0
         );
       }
       if (!measured) return;
 
-      var maxHeight = Math.floor(window.innerHeight * 0.86);
-      var targetHeight = Math.min(maxHeight, Math.max(420, measured + 2));
-      frame.style.height = targetHeight + 'px';
+      const maxHeight = Math.floor(window.innerHeight * 0.86);
+      frame.style.height = Math.min(maxHeight, Math.max(420, measured + 2)) + 'px';
     }
 
     function openModal() {
@@ -233,9 +214,10 @@
       document.documentElement.style.overflow = 'hidden';
       document.documentElement.classList.add('yoi-embed-open');
       modal.classList.remove('is-visible');
-      requestAnimationFrame(function () {
-        modal.classList.add('is-visible');
-      });
+      // Keep dialog hidden until content is sized; backdrop fades in immediately.
+      dialog.style.setProperty('opacity', '0', 'important');
+      dialog.style.setProperty('transform', 'translateY(8px)', 'important');
+      requestAnimationFrame(() => modal.classList.add('is-visible'));
     }
 
     function finalizeCloseModal() {
@@ -246,6 +228,8 @@
       frame.style.width = '';
       frame.style.height = '';
       frame.style.opacity = '';
+      dialog.style.removeProperty('opacity');
+      dialog.style.removeProperty('transform');
       if (fitTimer) {
         window.clearTimeout(fitTimer);
         fitTimer = 0;
@@ -274,44 +258,43 @@
         return;
       }
 
-      closeTimer = window.setTimeout(function () {
+      closeTimer = window.setTimeout(() => {
         closeTimer = 0;
         finalizeCloseModal();
       }, EMBED_CLOSE_ANIM_MS);
     }
 
     async function openPreview(anchor) {
-      var url = new URL(anchor.href, window.location.href);
-      var token = ++clickToken;
+      const url = new URL(anchor.href, window.location.href);
+      const token = ++clickToken;
       parsing = true;
       applyFramePresetSize();
       openModal();
       frame.removeAttribute('src');
       frame.removeAttribute('srcdoc');
-      if (anchor.blur) anchor.blur();
+      anchor.blur?.();
 
       try {
-        var response = await fetch(url.pathname, { credentials: 'same-origin' });
+        const response = await fetch(url.pathname, { credentials: 'same-origin' });
         if (!response.ok) throw new Error('Fetch failed');
 
-        var html = await response.text();
+        const html = await response.text();
         if (token !== clickToken) return;
 
-        var doc = new DOMParser().parseFromString(html, 'text/html');
-        var stage = doc.querySelector('.tategaki-stage');
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const stage = doc.querySelector('.tategaki-stage');
         if (!stage) {
           closeModal(true);
           window.location.href = url.href;
           return;
         }
 
-        var scriptText = findTategakiScript(doc);
-        var embedHtml = buildEmbedHtml(
+        const embedHtml = buildEmbedHtml(
           stage.outerHTML,
-          scriptText,
-          doc.title || anchor.textContent || '',
-          embedPaneHeightPx || computeEmbedPaneHeight()
+          findTategakiScript(doc),
+          doc.title || anchor.textContent || ''
         );
+
         frame.addEventListener('load', function onFrameLoad() {
           if (token !== clickToken) return;
           fitFrameHeightToContent(token);
@@ -319,28 +302,31 @@
           function revealFrame() {
             if (token !== clickToken) return;
             fitFrameHeightToContent(token);
+            // Release dialog inline overrides so CSS transition fades it in.
+            dialog.style.removeProperty('opacity');
+            dialog.style.removeProperty('transform');
             frame.style.opacity = '1';
           }
 
-          var frameDoc = frame.contentDocument;
-          var fontsReady = frameDoc && frameDoc.fonts && frameDoc.fonts.ready && typeof frameDoc.fonts.ready.then === 'function';
+          const frameDoc = frame.contentDocument;
+          const fontsReady = typeof frameDoc?.fonts?.ready?.then === 'function';
 
           if (fontsReady) {
             // Reveal after fonts load (height is final), with a safety timeout.
-            var revealed = false;
-            var safetyTimer = window.setTimeout(function () {
+            let revealed = false;
+            const safetyTimer = window.setTimeout(() => {
               if (!revealed) { revealed = true; revealFrame(); }
             }, 600);
-            frameDoc.fonts.ready.then(function () {
+            const onReady = () => {
               if (!revealed) { revealed = true; window.clearTimeout(safetyTimer); revealFrame(); }
-            }).catch(function () {
-              if (!revealed) { revealed = true; window.clearTimeout(safetyTimer); revealFrame(); }
-            });
+            };
+            frameDoc.fonts.ready.then(onReady).catch(onReady);
           } else {
             // No font API — refit after a short delay then reveal.
             window.setTimeout(revealFrame, 160);
           }
         }, { once: true });
+
         frame.srcdoc = embedHtml;
       } catch (e) {
         closeModal(true);
@@ -350,54 +336,44 @@
       }
     }
 
-    closeTriggers.forEach(function (trigger) {
-      trigger.addEventListener('click', function (event) {
-        if (event) event.preventDefault();
+    closeTriggers.forEach(trigger => {
+      trigger.addEventListener('click', event => {
+        event?.preventDefault();
         closeModal(false);
       });
     });
 
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && !modal.hidden) {
-        closeModal();
-      }
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !modal.hidden) closeModal();
     });
 
-    document.addEventListener('click', function (event) {
-      var anchor = event.target && event.target.closest ? event.target.closest('a') : null;
-      if (!anchor) return;
-      if (!isYoishigureDetailLink(anchor)) return;
+    document.addEventListener('click', event => {
+      const anchor = event.target?.closest?.('a');
+      if (!anchor || !isYoishigureDetailLink(anchor)) return;
       if (!canOpenEmbedInViewport()) {
         setOpeningState(false);
         clearOpeningLink();
         return;
       }
-      if (parsing) {
-        event.preventDefault();
-        return;
-      }
-
+      if (parsing) { event.preventDefault(); return; }
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         setOpeningState(false);
         clearOpeningLink();
         return;
       }
-
       setOpeningLink(anchor);
       setOpeningState(true);
       event.preventDefault();
       openPreview(anchor);
     });
 
-    document.addEventListener('pointerdown', function (event) {
+    document.addEventListener('pointerdown', event => {
       if (event.button !== 0) return;
-      var anchor = event.target && event.target.closest ? event.target.closest('a') : null;
-      if (!anchor) return;
-      if (!isYoishigureDetailLink(anchor)) return;
+      const anchor = event.target?.closest?.('a');
+      if (!anchor || !isYoishigureDetailLink(anchor)) return;
       if (!canOpenEmbedInViewport()) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (parsing) return;
-
       setOpeningLink(anchor);
       setOpeningState(true);
       event.preventDefault();

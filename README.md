@@ -121,7 +121,6 @@ The original `comments.ejs` loaded Disqus lazily behind a button. This fork repl
 - Loads `font.css` and `typo.css` in the CSS cascade (before `custom.css`).
 - Conditionally injects a `<style>` block with critical Yoishigure index styles when `page.yoishigure_index` is set.
 - Simplified OG/Twitter image tags (removed null-guards, always emits the tag).
-- `<html lang>` hardcoded to `"en"` (original used `config.language`).
 
 **`layout/post.ejs`**
 - Renders content through `tategaki_content.ejs` instead of a bare `<%- page.content %>`.
