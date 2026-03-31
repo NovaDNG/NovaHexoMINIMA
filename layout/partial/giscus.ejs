@@ -6,8 +6,8 @@
     (function () {
       var GISCUS_ORIGIN = 'https://giscus.app';
       var THEMES = {
-        light: '<%= theme.giscus.theme_light %>',
-        dark: '<%= theme.giscus.theme_dark %>'
+        light: 'catppuccin_latte',
+        dark: 'transparent_dark'
       };
 
       function getPreferredThemeValue() {
@@ -70,17 +70,17 @@
         container.setAttribute('data-loaded', '1');
 
         var cfg = {
-          repo: '<%= theme.giscus.repo %>',
-          repoId: '<%= theme.giscus.repoId %>',
-          category: '<%= theme.giscus.category %>',
-          categoryId: '<%= theme.giscus.categoryId %>',
-          mapping: '<%= theme.giscus.mapping %>',
-          strict: '<%= theme.giscus.strict %>',
-          reactionsEnabled: '<%= theme.giscus.reactionsEnabled %>',
-          emitMetadata: '<%= theme.giscus.emitMetadata %>',
-          inputPosition: '<%= theme.giscus.inputPosition %>',
+          repo: 'NovaDNG/novadng.github.io',
+          repoId: 'MDEwOlJlcG9zaXRvcnkzNDgwOTI1MzU=',
+          category: 'General',
+          categoryId: 'DIC_kwDOFL94d84CmgFx',
+          mapping: 'pathname',
+          strict: '0',
+          reactionsEnabled: '1',
+          emitMetadata: '0',
+          inputPosition: 'top',
           theme: getGiscusTheme(),
-          lang: '<%= theme.giscus.lang %>',
+          lang: 'en',
           loading: 'lazy'
         };
 

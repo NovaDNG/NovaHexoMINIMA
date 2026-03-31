@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="<%= config.language %>">
+<html lang="en">
 
 <head>
 
@@ -43,13 +43,9 @@
   <% } %>
   <meta name="author" content="<%- config.author %>">
   <% if (is_post() || is_page()) { %>
-  <% if(page.thumbnail){ %>
   <meta property="og:image" content="<%-config.url + page.thumbnail %>">
-  <% } %>
   <% } else { %>
-  <% if(theme.thumbnail){ %>
   <meta property="og:image" content="<%-config.url + theme.thumbnail %>">
-  <% } %>
   <% } %>
   <meta property="og:site_name" content="<%= config.title %>" />
   <meta property="og:type" content="article" />
@@ -73,13 +69,9 @@
   <meta name="twitter:description" content="<%= config.description %>">
   <% } %>
   <% if (is_post() || is_page()) { %>
-  <% if(page.thumbnail){ %>
   <meta name="twitter:image" content="<%-config.url + page.thumbnail %>">
-  <% } %>
   <% } else { %>
-  <% if(theme.thumbnail){ %>
   <meta name="twitter:image" content="<%-config.url + theme.thumbnail %>">
-  <% } %>
   <% } %>
   <meta name="twitter:url" content="<%= url.replace(/index\.html$/, '').replace(/index\.html$/, '') %>" />
 
@@ -89,13 +81,54 @@
 
   <!-- Preload fonts
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="preload" href="/fonts/dm-serif-display-v4-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/inter-v2-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  (function(d) {
+    var config = {
+      kitId: 'wgq1qkn',
+      scriptTimeout: 3000,
+      async: true
+    },
+    h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='https://use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+  })(document);
+</script>
+
+  <%- partial('partial/theme_init') %>
+
+  <% if (page.yoishigure_index || page.tategaki) { %>
+  <style id="critical-yoi-float-nav">
+    @keyframes yoiFadeOnly {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .page-yoishigure .trans {
+      animation-name: yoiFadeOnly;
+    }
+
+    .yoi-float-nav {
+      position: fixed;
+      top: 8rem;
+      right: max(1.2rem, calc((100vw - 960px) / 2 - 16rem));
+      z-index: 24;
+      width: max-content;
+      min-width: 20rem;
+      max-width: min(44rem, calc(100vw - 2rem));
+    }
+
+    @media (max-width: 1380px) {
+      .yoi-float-nav {
+        display: none;
+      }
+    }
+  </style>
+  <% } %>
 
   <!-- CSS
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <%- css('css/normalize.css') %>
   <%- css('css/skeleton.css') %>
+  <%- css('css/font.css') %>
+  <%- css('css/typo.css') %>
   <%- css('css/custom.css') %>
   <%- css('css/prism-dark.css') %>
   <%- css('css/prism-line-numbers.css') %>
@@ -112,38 +145,54 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <%- partial('partial/tcolor') %>
 
-  <!-- Google Analytics (With Privacy Settings On)
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <%- partial('partial/google_analytics') %>
-
-  <% if (theme.picjs) { %>
-  <script src="<%- theme.picjs %>" defer></script>
-  <% } %>
-
-  <% if(config.search){ %>
-  <script src="/js/search.min.js" defer></script>
-  <% } %>
-
 </head>
 
-<body>
+<body<% if (page.yoishigure_index) { %> class="page-yoishigure"<% } else if (page.tategaki) { %> class="page-yoishigure page-yoishigure-sub"<% } %>>
+  <%
+    function normalizeRouteForLayout(p) {
+      return String(p || '')
+        .replace(/^https?:\/\/[^/]+/i, '')
+        .replace(/[?#].*$/, '')
+        .replace(/index\.html$/i, '')
+        .replace(/\.html$/i, '')
+        .replace(/^\/+|\/+$/g, '');
+    }
+
+    var isPageOrPost = page.layout === 'post' || page.layout === 'page';
+    var hasPageBreadcrumb = false;
+
+    if (page.layout === 'page' && page.breadcrumb !== false) {
+      var cleanPath = normalizeRouteForLayout(page.path || '');
+      var segments = cleanPath ? cleanPath.split('/').filter(Boolean) : [];
+      // Keep in sync with partial/path_breadcrumb.ejs: OMIT_LEVELS=1 and >=2 visible levels.
+      hasPageBreadcrumb = segments.length >= 2;
+    }
+  %>
   <div class="container">
     <div class="row">
       <div>
-
-        <%- partial('partial/header') %>
+        <% if (!isPageOrPost && !hasPageBreadcrumb) { %>
+          <%- partial('partial/header') %>
+        <% } %>
         <div class="trans">
+          <% if (page.yoishigure_index) { %>
+          <%- partial('partial/yoishigure_float_nav') %>
+          <% } %>
           <%- body %>
+          <%- partial('partial/footer') %>
+          <% if (isPageOrPost && !hasPageBreadcrumb) { %>
+            <%- partial('partial/pheader')  %>
+          <% } %>
         </div>
-        <%- partial('partial/search') %>
-        <%- partial('partial/footer') %>
       </div>
 
     </div>
 
   </div>
+  <% if (page.yoishigure_index || page.tategaki) { %>
+  <%- partial('partial/yoishigure_embed_preview') %>
+  <% } %>
   <script src="<%- theme.nanobar %>"></script>
-
   <script>
     var options = {
       classname: 'nanobar',

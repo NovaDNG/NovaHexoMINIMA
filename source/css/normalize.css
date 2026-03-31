@@ -62,7 +62,7 @@ hr {
  */
 
 pre {
-  font-family: monospace, monospace; /* 1 */
+  font-family: "Berkeley Mono", "IBM Plex Mono", -apple-system, BlinkMacSystemFont, sans-serif; /* 1 */
   font-size: 1em; /* 2 */
 }
 
@@ -94,7 +94,8 @@ abbr[title] {
 
 b,
 strong {
-  font-weight: bolder;
+  font-family: "iA Writer Quattro V", "HYQiHei-80W", FZYouHei_GBK, "Ten Mincho", Source Han Sans SC, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-weight: 800;
 }
 
 /**
@@ -105,30 +106,26 @@ strong {
 code,
 kbd,
 samp {
-  font-family: monospace, monospace; /* 1 */
+  font-family: "Berkeley Mono", "IBM Plex Mono", "Cascadia Code", "Fira Code", "iA Writer Mono", "Roboto Mono", monospace; /* 1 */
   font-size: 1em; /* 2 */
+  font-variant-numeric: tabular-nums;
 }
 
-/**
- * Add the correct font size in all browsers.
- */
-
-small {
-  font-size: 80%;
-}
 
 /**
  * Prevent `sub` and `sup` elements from affecting the line height in
  * all browsers.
  */
 
-sub,
+/* sub,
 sup {
   font-size: 75%;
   line-height: 0;
   position: relative;
   vertical-align: baseline;
-}
+  font-family: "Berkeley Mono", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 600;
+} */
 
 sub {
   bottom: -0.25em;
@@ -199,6 +196,7 @@ button,
 [type="reset"],
 [type="submit"] {
   -webkit-appearance: button;
+  appearance: button;
 }
 
 /**
@@ -292,6 +290,7 @@ textarea {
 [type="search"] {
   -webkit-appearance: textfield; /* 1 */
   outline-offset: -2px; /* 2 */
+  appearance: textfield;
 }
 
 /**

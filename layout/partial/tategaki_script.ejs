@@ -1,9 +1,174 @@
-<script data-tategaki-script>
+<script>
   (function () {
     // Mobile breakpoint used to disable desktop-only horizontal scrolling behavior.
     var mobileQuery = window.matchMedia('(max-width: 900px)');
     // Detect ruby base text that contains Latin letters/digits and needs manual inter-script spacing.
     var RUBY_LATIN_PATTERN = /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/;
+
+    // -------------------------------------------------------------------------
+    // Legacy auto-TCY pipeline (kept for reference, currently disabled).
+    // -------------------------------------------------------------------------
+    /*
+     * Auto TCY detection (disabled by design).
+     * Use manual markup in markdown instead:
+     *   <span class="tcy">...</span>
+     * Keep this block for future reference.
+     *
+    var SKIP_PARENT_SELECTOR = 'script, style, code, pre, textarea, rt';
+
+    var TCY_PATTERN = /[0-9０-９]{1,2}[:：][0-9０-９]{2}|[+\-＋－±∓×÷＝=<>＜＞≤≥~∼][0-9０-９]{1,3}|[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]{2,4}/g;
+    var TCY_PRECHECK_PATTERN = /[0-9０-９]{1,2}[:：][0-9０-９]{2}|[+\-＋－±∓×÷＝=<>＜＞≤≥~∼][0-9０-９]{1,3}|[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]{2,4}/;
+    var TCY_TIME_PATTERN = /^[0-9０-９]{1,2}[:：][0-9０-９]{2}$/;
+    var TCY_MATH_PATTERN = /^[+\-＋－±∓×÷＝=<>＜＞≤≥~∼][0-9０-９]{1,3}$/;
+    var TCY_BOUNDARY_PATTERN = /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/;
+    var LATIN_PATTERN = /[A-Za-zＡ-Ｚａ-ｚ]/;
+    var CJK_PATTERN = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
+    var TCY_MAX_COMPRESS_RATIO = 2;
+
+    function canUseTcyToken(token) {
+      if (!token) return false;
+      if (TCY_TIME_PATTERN.test(token)) return true; // time-like tokens (e.g. 2:26)
+      if (TCY_MATH_PATTERN.test(token)) return true; // symbol + digits (e.g. ±0)
+      if (!/[A-Za-zＡ-Ｚａ-ｚ]/.test(token)) return true; // pure digits
+      if (/[0-9０-９]/.test(token)) return true; // mixed letter+digit
+      if (/[A-ZＡ-Ｚ]/.test(token)) return true; // acronym-like tokens (e.g. MC)
+      return false;
+    }
+
+    function isTokenBoundary(text, start, end) {
+      var prev = start > 0 ? text.charAt(start - 1) : '';
+      var next = end < text.length ? text.charAt(end) : '';
+      return !TCY_BOUNDARY_PATTERN.test(prev) && !TCY_BOUNDARY_PATTERN.test(next);
+    }
+
+    function isWesternOnlyText(text) {
+      if (!text) return false;
+      if (!LATIN_PATTERN.test(text)) return false;
+      return !CJK_PATTERN.test(text);
+    }
+
+    function isPartOfWesternPhrase(text, start, end, token) {
+      if (!token || !LATIN_PATTERN.test(token)) return false;
+      var isSpace = function (ch) {
+        return ch === ' ' || ch === '\u3000' || /\s/.test(ch);
+      };
+
+      var i = start - 1;
+      while (i >= 0 && isSpace(text.charAt(i))) i--;
+      var prevNonSpace = i >= 0 ? text.charAt(i) : '';
+
+      var j = end;
+      while (j < text.length && isSpace(text.charAt(j))) j++;
+      var nextNonSpace = j < text.length ? text.charAt(j) : '';
+
+      return LATIN_PATTERN.test(prevNonSpace) || LATIN_PATTERN.test(nextNonSpace);
+    }
+
+    function shouldKeepNaturalWidth(token, contextEl, cache) {
+      if (!token) return false;
+      if (TCY_TIME_PATTERN.test(token)) return true;
+
+      if (cache && cache.has(token)) return cache.get(token);
+      if (!contextEl) return false;
+
+      var probe = document.createElement('span');
+      probe.textContent = token;
+      probe.style.position = 'absolute';
+      probe.style.visibility = 'hidden';
+      probe.style.pointerEvents = 'none';
+      probe.style.whiteSpace = 'nowrap';
+      probe.style.writingMode = 'horizontal-tb';
+      probe.style.textOrientation = 'mixed';
+      probe.style.font = 'inherit';
+      probe.style.letterSpacing = 'inherit';
+      probe.style.wordSpacing = 'inherit';
+      probe.style.lineHeight = '1';
+
+      contextEl.appendChild(probe);
+      var naturalWidth = probe.getBoundingClientRect().width;
+      probe.remove();
+
+      var fontSize = parseFloat(window.getComputedStyle(contextEl).fontSize) || 16;
+      var keepNatural = naturalWidth > fontSize * TCY_MAX_COMPRESS_RATIO;
+
+      if (cache) cache.set(token, keepNatural);
+      return keepNatural;
+    }
+
+    function collectCandidateTextNodes(root) {
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      var textNodes = [];
+
+      while (walker.nextNode()) {
+        var node = walker.currentNode;
+        var parent = node.parentNode;
+
+        if (!parent || parent.nodeType !== 1) continue;
+        if (parent.closest(SKIP_PARENT_SELECTOR)) continue;
+        if (parent.classList && parent.classList.contains('tcy')) continue;
+        if (isWesternOnlyText(node.nodeValue)) continue;
+        if (!TCY_PRECHECK_PATTERN.test(node.nodeValue)) continue;
+
+        textNodes.push(node);
+      }
+
+      return textNodes;
+    }
+
+    function buildTcyFragment(text, contextEl, tokenDecisionCache) {
+      var fragment = document.createDocumentFragment();
+      var lastIndex = 0;
+      var hasReplacement = false;
+      var match;
+
+      TCY_PATTERN.lastIndex = 0;
+
+      while ((match = TCY_PATTERN.exec(text)) !== null) {
+        var token = match[0];
+        var start = match.index;
+        var end = start + token.length;
+
+        if (!canUseTcyToken(token)) continue;
+        if (isPartOfWesternPhrase(text, start, end, token)) continue;
+        if (!isTokenBoundary(text, start, end)) continue;
+        if (shouldKeepNaturalWidth(token, contextEl, tokenDecisionCache)) continue;
+
+        if (start > lastIndex) {
+          fragment.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+        }
+
+        var span = document.createElement('span');
+        span.className = 'tcy';
+        span.textContent = token;
+        fragment.appendChild(span);
+
+        lastIndex = end;
+        hasReplacement = true;
+      }
+
+      if (!hasReplacement) return null;
+
+      if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+      }
+
+      return fragment;
+    }
+
+    function applyTcy(root) {
+      if (!root || root.dataset.tcyEnhanced === '1') return;
+      root.dataset.tcyEnhanced = '1';
+
+      var tokenDecisionCache = new Map();
+      var textNodes = collectCandidateTextNodes(root);
+
+      textNodes.forEach(function (node) {
+        var fragment = buildTcyFragment(node.nodeValue, root, tokenDecisionCache);
+        if (!fragment) return;
+        node.parentNode.replaceChild(fragment, node);
+      });
+    }
+    */
 
     function bindWheelToHorizontalScroll(el) {
       if (!el || el.dataset.tategakiBound === '1') return;
@@ -14,13 +179,16 @@
       var userInteracted = false;
       var isProgrammaticScroll = false;
       var pendingRightOffset = null;
-      var DETAILS_ANIM_MS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--details-anim-ms')) || 200;
+      var DETAILS_ANIM_MS = 200;
+
+      // applyTcy(content); // Disabled: TCY is now manual via <span class="tcy">...</span>
 
       // -----------------------------------------------------------------------
       // Ruby autospace compensation:
       // Add a class on ruby nodes whose base text includes Latin/digits.
       // CSS then applies a 0.125ic side gap to mimic inter-script spacing.
       // -----------------------------------------------------------------------
+      applyRubyAutospace(content);
 
       // Extract ruby base text (exclude rt/rp annotations).
       function getRubyBaseText(rubyEl) {
@@ -54,12 +222,6 @@
         }
       }
 
-      applyRubyAutospace(content);
-
-      // -----------------------------------------------------------------------
-      // Scroll position helpers
-      // -----------------------------------------------------------------------
-
       // Set scrollLeft while suppressing "user interacted" detection.
       function setProgrammaticScrollLeft(next) {
         if (el.scrollLeft === next) return;
@@ -75,7 +237,10 @@
         if (mobileQuery.matches || userInteracted) return;
 
         var maxScrollLeft = el.scrollWidth - el.clientWidth;
-        if (maxScrollLeft <= 0) return;
+        if (maxScrollLeft <= 0) {
+          updateEdgeFadeState();
+          return;
+        }
 
         setProgrammaticScrollLeft(maxScrollLeft);
       }
@@ -94,6 +259,7 @@
         var maxScrollLeft = el.scrollWidth - el.clientWidth;
         if (maxScrollLeft <= 0) {
           pendingRightOffset = null;
+          updateEdgeFadeState();
           return;
         }
 
@@ -103,42 +269,34 @@
         setProgrammaticScrollLeft(next);
       }
 
-      // -----------------------------------------------------------------------
-      // Details toggle with scroll restoration
-      // Intercepts native <details> toggle to prevent horizontal jitter while
-      // keeping keyboard accessibility intact.
-      // -----------------------------------------------------------------------
-
-      function toggleDetailsWithAnimation(details) {
-        if (!details || details.classList.contains('is-closing')) return;
-
-        if (details.open) {
-          details.classList.add('is-closing');
-          window.setTimeout(function () {
-            details.open = false;
-            details.classList.remove('is-closing');
-            restoreFromRightOffset();
-          }, DETAILS_ANIM_MS);
-          return;
-        }
-
-        details.open = true;
-        restoreFromRightOffset();
-      }
-
-      // -----------------------------------------------------------------------
-      // Event listeners
-      // -----------------------------------------------------------------------
-
       // Any non-programmatic scroll means user has taken control;
       // stop future auto realignment.
       el.addEventListener('scroll', function () {
+        updateEdgeFadeState();
         if (isProgrammaticScroll) return;
         userInteracted = true;
       }, { passive: true });
 
       if (content) {
+        function toggleDetailsWithAnimation(details) {
+          if (!details || details.classList.contains('is-closing')) return;
+
+          if (details.open) {
+            details.classList.add('is-closing');
+            window.setTimeout(function () {
+              details.open = false;
+              details.classList.remove('is-closing');
+              restoreFromRightOffset();
+            }, DETAILS_ANIM_MS);
+            return;
+          }
+
+          details.open = true;
+          restoreFromRightOffset();
+        }
+
         // Intercept summary click to avoid native toggle jitter.
+        // We toggle details manually and immediately restore scroll position.
         content.addEventListener('click', function (event) {
           var target = event.target;
           if (!target || !target.closest) return;
@@ -147,13 +305,16 @@
           var details = summary.closest('details');
           if (!details) return;
 
+          // Prevent native toggle so we can restore scroll position in the same task.
           event.preventDefault();
           userInteracted = true;
           captureRightOffset();
+
           toggleDetailsWithAnimation(details);
         }, true);
 
-        // Keep keyboard accessibility (Enter/Space on summary) with the same scroll restoration.
+        // Keep keyboard accessibility behavior (Enter/Space on summary)
+        // while preserving the same anti-jitter scroll restoration.
         content.addEventListener('keydown', function (event) {
           var target = event.target;
           if (!target || !target.closest) return;
@@ -172,8 +333,6 @@
       }
 
       // Map vertical wheel gesture to horizontal movement in desktop tategaki view.
-      // In vertical-rl reading flow, invert wheel Y mapping so natural
-      // up/down gesture direction matches expected page progression.
       el.addEventListener('wheel', function (event) {
         if (mobileQuery.matches) return;
         if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
@@ -181,59 +340,19 @@
         var maxScrollLeft = el.scrollWidth - el.clientWidth;
         if (maxScrollLeft <= 0) return;
 
-        var next = Math.max(0, Math.min(maxScrollLeft, el.scrollLeft - event.deltaY));
+        var next = Math.max(0, Math.min(maxScrollLeft, el.scrollLeft + event.deltaY));
         if (next === el.scrollLeft) return;
 
         userInteracted = true;
         event.preventDefault();
         el.scrollLeft = next;
+        updateEdgeFadeState();
       }, { passive: false });
 
-      // -----------------------------------------------------------------------
-      // Dynamic height: measure content to minimize text wrapping.
-      // In vertical-rl the container height controls column length.
-      // We temporarily unconstrain it, find the tallest child's natural
-      // height, then clamp between a floor and a viewport-relative cap.
-      // -----------------------------------------------------------------------
-      function computeAndApplyDynamicHeight() {
-        if (mobileQuery.matches) {
-          el.style.removeProperty('height');
-          return;
-        }
-
-        // In vertical-rl, height = inline size. Setting the content to
-        // `max-content` lets it size itself to the tallest column needed
-        // so that no soft wrapping occurs within any paragraph/stanza.
-        content.style.height = 'max-content';
-        void content.offsetHeight; // force synchronous layout
-        var idealH = content.offsetHeight;
-        content.style.height = ''; // restore CSS `height: 100%`
-
-        if (idealH <= 0) {
-          el.style.removeProperty('height');
-          return;
-        }
-
-        var target = Math.ceil(idealH) + 48; // breathing room for scrollbar gutter
-
-        // In an embed iframe the parent page controls the frame size,
-        // so skip the viewport cap here to avoid a circular constraint.
-        var isEmbed = el.closest('.yoi-embed-root');
-        if (!isEmbed) {
-          var cap = Math.floor(window.innerHeight * 0.8);
-          target = Math.max(240, Math.min(target, cap));
-        }
-
-        el.style.height = target + 'px';
-      }
-
-      // -----------------------------------------------------------------------
-      // Initialization
-      // -----------------------------------------------------------------------
-
+      // Shared initializer used by first paint and viewport mode changes.
       function initializeViewport() {
-        computeAndApplyDynamicHeight();
         scrollToRightEdge();
+        updateEdgeFadeState();
       }
 
       // Multi-pass initialization for stable first paint alignment.
@@ -243,24 +362,16 @@
         requestAnimationFrame(initializeViewport);
       });
 
-      // Re-run on load and resize; intentionally avoid observing content size changes
-      // (expanding/collapsing <details> changes content width and should not force re-alignment).
+      // Re-run initialization only on viewport-level changes.
       window.addEventListener('load', initializeViewport, { once: true });
       window.addEventListener('resize', initializeViewport);
+      // Intentionally avoid observing content size changes.
+      // Expanding/collapsing <details> changes content width and should not force re-alignment.
 
       if (mobileQuery.addEventListener) {
         mobileQuery.addEventListener('change', initializeViewport);
       } else if (mobileQuery.addListener) {
-        // Safari < 14 fallback
         mobileQuery.addListener(initializeViewport);
-      }
-
-      // Re-measure after fonts finish loading — glyph metrics affect column height.
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(function () {
-          computeAndApplyDynamicHeight();
-          if (!userInteracted) scrollToRightEdge();
-        }).catch(function () {});
       }
     }
 

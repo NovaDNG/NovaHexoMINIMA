@@ -1,3 +1,7 @@
-  <h2><%- page.title %></h2>
+<% var useTategaki = page.tategaki === true || page.tategaki === 'true'; %>
 
-  <%- page.content%>
+<h2 class="mt-3"><%- page.title %></h2>
+
+<%- partial('partial/tategaki_content', { content: page.content, useTategaki: useTategaki }) %>
+<%- partial('partial/path_breadcrumb') %>
+<%- partial('partial/giscus') %>

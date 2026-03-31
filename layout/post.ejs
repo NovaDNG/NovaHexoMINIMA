@@ -1,5 +1,8 @@
-  <h2><%- page.title %></h2>
+<% var useTategaki = page.tategaki === true || page.tategaki === 'true'; %>
 
-  <%- page.content%>
-  <p><%- list_tags(page.tags, {class: 'classtest', show_count: false, style: false}) %> — <%- full_date(page.date, 'll') %></p>
-  <%- partial('partial/comments') %>
+<h2 class="mt-3"><%- page.title %></h2>
+
+<%- partial('partial/tategaki_content', { content: page.content, useTategaki: useTategaki }) %>
+
+<p class="post-meta"><%- list_tags(page.tags, {class: 'classtest', show_count: false, style: false}) %> — <%- full_date(page.date, 'll') %></p>
+<%- partial('partial/giscus') %>

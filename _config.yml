@@ -3,18 +3,22 @@ title: "NovaDNG Studio"
 
 #main info
 #owner
-owner: "NovaDNG"
-info: "A graphic design student"
+owner: "/ˈnəʊ.və ˈdiː en dʒiː/"
+info: "Jünger der Schwarzen Kunst."
 #description
-desc: "Nothing for now"
+desc: "Gott grüß die Kunst."
 
 #menu
 menu:
   Works: /Works
+  Frames: /Frames
+  Commissions: /Commissions
   About: /About
+  Now: /Now
+  RSS: /atom.xml
 
 #index/main page max show posts (in number)
-max_post: 7
+#max_post: 460
 
 # Colors use hex color without #
 # Theme color
@@ -27,27 +31,37 @@ usercss: css/user.css
 
 # social profile at the footer/bottom
 footer: true
-placename: UK
+placename: DENSHI NO UMI
 placelink: https://goo.gl/maps/D5obNcpYpkkFEFSNA
 instagram: https://www.instagram.com/NovaDNG/
 twitter: https://twitter.com/NovaDNG
+bluesky: https://bsky.app/profile/novadng.studio
+telegram: https://t.me/nova_dng
 
 # Misc
 nanobar: /js/nanobar.min.js
 switch_light: ❂
-switch_dark: ❍
+switch_dark: ✶
 
 # Picture enlargement
 picjs: /js/pic.min.js
 
 # favicon
-favicon: /images/Cube 128.png
+favicon: /images/Cube-128.avif
 # thumbnail
-# thumbnail: /images/thumbnail.jpg
+thumbnail: /images/thumbnail.avif
 
 article:
-  thumbnail: true
+  thumbnail: false
 
 # DISQUS comments (sign up to Disqus to get disqus_shortname)
 disqus_enabled: false
-disqus_shortname: https-adisaktijrs-github-io
+disqus_shortname: novadng
+
+giscus:
+  enable: true
+
+# Fill in your Google Analytics tracking ID to enable Google Analytics.
+google_analytics:
+  enabled: false
+  id: G-TM5GLPGE58

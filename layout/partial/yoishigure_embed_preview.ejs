@@ -69,8 +69,14 @@
     }
 
     function findTategakiScript(doc) {
-      var el = doc.querySelector('script[data-tategaki-script]');
-      return el ? (el.textContent || '') : '';
+      var scripts = Array.prototype.slice.call(doc.querySelectorAll('script'));
+      for (var i = 0; i < scripts.length; i++) {
+        var text = scripts[i].textContent || '';
+        if (text.indexOf("var mobileQuery = window.matchMedia('(max-width: 900px)')") !== -1) {
+          return text;
+        }
+      }
+      return '';
     }
 
     function canOpenEmbedInViewport() {
@@ -89,30 +95,17 @@
       clearOpeningLink();
       openingLink = anchor;
       openingLink.classList.add('yoi-embed-opening-link');
+      openingLink.style.setProperty('background-image', 'none', 'important');
       openingLink.style.setProperty('transition', 'none', 'important');
-      var computed = window.getComputedStyle(openingLink);
-      openingLink.style.setProperty('color', computed.color, 'important');
-      openingLink.style.setProperty('background-image', computed.backgroundImage, 'important');
-      openingLink.style.setProperty('background-position', computed.backgroundPosition, 'important');
-      openingLink.style.setProperty('background-size', computed.backgroundSize, 'important');
-      openingLink.style.setProperty('text-decoration-line', computed.textDecorationLine, 'important');
-      openingLink.style.setProperty('text-decoration-color', computed.textDecorationColor, 'important');
-      openingLink.style.setProperty('text-decoration-style', computed.textDecorationStyle, 'important');
-      openingLink.style.setProperty('text-decoration-thickness', computed.textDecorationThickness, 'important');
+      openingLink.style.setProperty('color', window.getComputedStyle(openingLink).color, 'important');
     }
 
     function clearOpeningLink() {
       if (!openingLink) return;
       openingLink.classList.remove('yoi-embed-opening-link');
       openingLink.style.removeProperty('background-image');
-      openingLink.style.removeProperty('background-position');
-      openingLink.style.removeProperty('background-size');
       openingLink.style.removeProperty('transition');
       openingLink.style.removeProperty('color');
-      openingLink.style.removeProperty('text-decoration-line');
-      openingLink.style.removeProperty('text-decoration-color');
-      openingLink.style.removeProperty('text-decoration-style');
-      openingLink.style.removeProperty('text-decoration-thickness');
       openingLink = null;
     }
 
@@ -164,12 +157,11 @@
         '    margin: 0;',
         '    padding: 0;',
         '    background: transparent;',
-        '    overflow: auto;',
-        '    min-height: 0 !important;',
-        '    height: auto !important;',
+        '    overflow: overlay;',
         '  }',
         '  .yoi-embed-root {',
         '    width: 100%;',
+        '    --tategaki-pane-height: ' + Math.max(300, Math.floor(paneHeightPx || 0)) + 'px;',
         '  }',
         '  .yoi-embed-root .tategaki-stage {',
         '    width: 100% !important;',
@@ -211,12 +203,11 @@
       if (root && root.getBoundingClientRect) {
         measured = Math.ceil(root.getBoundingClientRect().height);
       }
-      if (!measured) {
-        measured = Math.max(
-          body ? Math.ceil(body.scrollHeight) : 0,
-          html ? Math.ceil(html.scrollHeight) : 0
-        );
-      }
+      measured = Math.max(
+        measured,
+        body ? Math.ceil(body.scrollHeight) : 0,
+        html ? Math.ceil(html.scrollHeight) : 0
+      );
       if (!measured) return;
 
       var maxHeight = Math.floor(window.innerHeight * 0.86);
@@ -317,31 +308,17 @@
         frame.addEventListener('load', function onFrameLoad() {
           if (token !== clickToken) return;
           fitFrameHeightToContent(token);
-
-          function revealFrame() {
-            if (token !== clickToken) return;
+          if (fitTimer) window.clearTimeout(fitTimer);
+          fitTimer = window.setTimeout(function () {
             fitFrameHeightToContent(token);
-            frame.style.opacity = '1';
-          }
-
+          }, 160);
           var frameDoc = frame.contentDocument;
-          var fontsReady = frameDoc && frameDoc.fonts && frameDoc.fonts.ready && typeof frameDoc.fonts.ready.then === 'function';
-
-          if (fontsReady) {
-            // Reveal after fonts load (height is final), with a safety timeout.
-            var revealed = false;
-            var safetyTimer = window.setTimeout(function () {
-              if (!revealed) { revealed = true; revealFrame(); }
-            }, 600);
+          if (frameDoc && frameDoc.fonts && frameDoc.fonts.ready && typeof frameDoc.fonts.ready.then === 'function') {
             frameDoc.fonts.ready.then(function () {
-              if (!revealed) { revealed = true; window.clearTimeout(safetyTimer); revealFrame(); }
-            }).catch(function () {
-              if (!revealed) { revealed = true; window.clearTimeout(safetyTimer); revealFrame(); }
-            });
-          } else {
-            // No font API — refit after a short delay then reveal.
-            window.setTimeout(revealFrame, 160);
+              fitFrameHeightToContent(token);
+            }).catch(function () {});
           }
+          frame.style.opacity = '1';
         }, { once: true });
         frame.srcdoc = embedHtml;
       } catch (e) {
@@ -369,8 +346,6 @@
       var anchor = event.target && event.target.closest ? event.target.closest('a') : null;
       if (!anchor) return;
       if (!isYoishigureDetailLink(anchor)) return;
-      // Pointer interactions are handled in pointerdown; keep click for keyboard activation.
-      if (event.detail !== 0) return;
       if (!canOpenEmbedInViewport()) {
         setOpeningState(false);
         clearOpeningLink();

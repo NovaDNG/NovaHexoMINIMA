@@ -1,323 +1,1082 @@
-/* dm-serif-display-regular - latin */
-@font-face {
-  font-family: 'DM Serif Display';
-  font-style: normal;
-  font-weight: 400;
-  src: url('../fonts/dm-serif-display-v4-latin-regular.eot'); /* IE9 Compat Modes */
-  src: local('DM Serif Display Regular'), local('DMSerifDisplay-Regular'),
-       url('../fonts/dm-serif-display-v4-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('../fonts/dm-serif-display-v4-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
-       url('../fonts/dm-serif-display-v4-latin-regular.woff') format('woff'), /* Modern Browsers */
-       url('../fonts/dm-serif-display-v4-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
-       url('../fonts/dm-serif-display-v4-latin-regular.svg#DMSerifDisplay') format('svg'); /* Legacy iOS */
+/* ============================================================
+   VARIABLES & GLOBAL
+   ============================================================ */
 
-  font-display: swap; /* Add font-display */
-}
-
-/* inter-regular - latin */
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  src: url('../fonts/inter-v2-latin-regular.eot'); /* IE9 Compat Modes */
-  src: local(''),
-       url('../fonts/inter-v2-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('../fonts/inter-v2-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
-       url('../fonts/inter-v2-latin-regular.woff') format('woff'), /* Modern Browsers */
-       url('../fonts/inter-v2-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
-       url('../fonts/inter-v2-latin-regular.svg#Inter') format('svg'); /* Legacy iOS */
-
-  font-display: swap; /* Add font-display */
+:root {
+    text-autospace: normal;
+    --shadow-default: 0 6px 12px rgba(80, 0, 0, 0.16);
+    /* Single source of truth — keep in sync with DETAILS_ANIM_MS reads in layout.ejs and tategaki_script.ejs */
+    --details-anim-ms: 200;
+    text-spacing-trim: space-first;
 }
 
 html {
-  overflow: auto;
+    overflow: auto;
+    scroll-behavior: smooth;
+    background: #eae6e2;
+    transition: background-color 0.2s ease-in-out;
 }
 
-img {
-  max-width: 100%;
-  -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
-  -moz-box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
-  margin-bottom: 1%;
-}
-
-@media (min-width: 550px) {
-  /*
-  Side by side gallery
-  use with </> alignment
-  e.g.
-  [_gallery >](imgages/test.jpg)
-  */
-  img[alt~="_gallery"] {
-    max-width: 49.5%;
-  }
-
-  /* Aligned to the right */
-  img[alt$=">"] {
-    float: right;
-  }
-
-  /* Aligned to the left */
-  img[alt$="<"] {
-    float: left;
-  }
-
-  /* Centered image */
-  img[alt$="><"] {
-    display: block;
-    margin: auto;
-    float: none !important;
-  }
-}
-
-.center {
-  text-align: center;
-}
-
-.left {
-  margin-left: 0;
-}
-
-.lit {
-  font-size: 1.5rem;
-  font-weight: 300;
-}
-
-.little-svg {
-  fill: #fff;
-}
-
-.ml-0 {
-  margin-left: 0.7rem;
-}
-
-.ml {
-  margin-left: 2rem;
-}
-
-.ml-1 {
-  margin-left: 5rem;
-}
-
-.bottom {
-  margin-block-start: 0px;
-  margin-block-end: 0px;
-  margin-bottom: 0px;
-}
-
-.mb-1 {
-  margin-bottom: 0px;
-}
-
-.mb-2 {
-  margin-bottom: 5px;
-}
-
-.mb-3 {
-  margin-bottom: 20px;
-}
-
-.mr {
-  margin-right: 32px;
-}
-
-.mt-0 {
-  margin-top: 0px;
-}
-
-.mt-2 {
-  margin-top: 3rem;
-}
-
-.mt-3 {
-  margin-top: 4rem;
-}
-
-.mx-auto {
-  margin: auto;
-}
-
-.mode {
-  position: absolute;
-  display: block;
-  cursor: pointer;
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Edge, Opera and Firefox */
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.tag-link {
-  margin-right: 10px;
-}
-
-.about {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-}
-
-code:not(pre code) {
-  background-color: rgb(230, 230, 230);
-  border-radius: 5px;
-  padding: 0px 2px;
-  font-size: 85%;
-}
-
-body.darkmode code:not(pre code) {
-  background-color: rgb(65, 65, 65);
-}
-
-/* blockquote */
-blockquote {
-  font-family: 'Inter';
-  background-color: rgba(148, 148, 149, 0.08) ;
-  margin: 1.5em 0px;
-  padding: 1.1em 20px 1px 20px;
-  font-style: italic;
-}
-
-blockquote footer {
-  font-family: 'Inter';
-  font-size: 16px;
-  padding-bottom: 10px;
-  margin-top: -10px;
-}
-
-blockquote footer cite:before {
-  content: "—";
-  padding: 0 0.5em;
-}
-
-/* Scroll bar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgb(128 128 128 / 70%);
-}
-::-webkit-scrollbar-thumb:window-inactive {
-  background: rgb(128 128 128 / 20%);
-}
-
-::-webkit-scrollbar-thumb:active {
-  background-color: rgb(128 128 128 / 100%);
-}
-
-/* Footer */
-a.footer-link:hover,
-a.footer-link:focus {
-  cursor: pointer;
-}
-
-.svg-hov {
-  transition: all .2s ease-in-out;
-}
-.svg-hov:hover {
-  transform: translateY(-3px);
-  transition: all .2s ease-in-out;
-
-}
-
-.hexo {
-  fill: #03adfc;
-  vertical-align: middle;
-  padding-bottom: 4px;
-}
-
-.github {
-  fill: #63636F;
-}
-.linkedin {
-  fill: #0073b1;
-}
-.twitter {
-  fill: #1DA1F2;
-}
-.instagram {
-  fill: #E4405F
-}
-.stackoverflow {
-  fill: #ca7516;
-}
-.nanobar {
-  left: 0;
+html.darkmode {
+    background: rgb(25, 25, 26);
 }
 
 body {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  bottom: 10px;
-  right: 10px;
-  padding: 5px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  transition: all 0.3s ease-in-out;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    transition: color 0.2s ease-in-out;
+    background: transparent;
+    text-rendering: geometricPrecision;
 }
 
-body.darkmode {
-  background: rgb(34, 34, 38);
-  color: rgb(230, 230, 230);
+body.darkmode,
+html.darkmode body {
+    background: transparent;
+    color: rgb(151, 154, 156);
 }
 
+
+/* ============================================================
+   PAGE TRANSITION
+   ============================================================ */
+
+/* Wrapper div that plays the page entry animation */
 .trans {
-  animation: transitionPlay 0.7s;
+    animation: transitionPlay 0.7s;
 }
 
 @keyframes transitionPlay {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
 
-  to {
-    opacity: 1;
-    transform: none;
-  }
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 .hidden {
-  display: none;
+    display: none;
 }
 
-#comments {
-  text-align: center;
+/* Top-of-page loading progress bar (nanobar library) */
+.nanobar {
+    left: 0;
 }
 
-#madewith {
-  text-align: center;
+
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+
+/* --- Spacing --- */
+
+.bottom {
+    margin-block: 0;
+    line-height: 1.15;
 }
 
-.posisi {
-  text-align: center;
+.mb-1 {
+    margin-bottom: 0px;
+}
+
+.mb-2 {
+    margin-bottom: 5rem;
+}
+
+.mb-3 {
+    margin-bottom: 16px;
+}
+
+.mb-4 {
+    margin-bottom: 32px;
+}
+
+.mr {
+    margin-right: 32px;
+}
+
+.mt-0 {
+    margin-top: 0px;
+}
+
+.mt-2 {
+    margin-top: 5rem;
+    width: 100%; /* ensures block stretches full width inside floated/flex parents */
+}
+
+.mt-3 {
+    margin-top: 8rem;
+}
+
+.mx-auto {
+    margin: auto;
+}
+
+/* Utility: add 2rem left margin */
+.ml {
+    margin-left: 2rem;
+}
+
+/* Utility: add 0.7rem left margin (smaller variant) */
+.ml-0 {
+    margin-left: 0.7rem;
+}
+
+/* Utility: add 4rem left padding (used for title column in header) */
+.ml-1 {
+    padding-left: 4rem;
+}
+
+/* --- Alignment --- */
+
+/* Resets Skeleton's column margin-left so the first column flush-aligns left */
+.left {
+    margin-left: 0;
+}
+
+/* Content utility: centre-align text in markdown/HTML content */
+.text-center {
+    text-align: center;
+}
+
+
+/* ============================================================
+   HEADER & NAVIGATION
+   ============================================================ */
+
+/* Dark/light mode toggle button */
+.mode {
+    position: absolute;
+    display: block;
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Skeleton column wrapper for the mode toggle — keeps it tight to its icon */
+.mode-col {
+    max-width: 50px;
+}
+
+/* Skeleton's 9-column div that wraps the nav link row.
+   Flex + gap replaces per-link margins so items wrap without trailing space. */
+.nine.columns.nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2.33rem;
+}
+
+/* Nav & footer text: switch to monospace at wider viewports */
+@media (min-width: 550px) {
+    .nine.columns.nav {
+        font-family: "Berkeley Mono", -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+}
+
+
+/* ============================================================
+   IMAGES & MEDIA
+   ============================================================ */
+
+img {
+    max-width: 100%;
+    box-shadow: var(--shadow-default);
+    vertical-align: bottom; /* removes inline baseline gap without negative margin */
+}
+
+img.noshadow {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
 }
 
 @media (min-width: 550px) {
-  .posisi {
-    text-align: right;
-  }
+    /*
+      Side by side gallery — use alt text alignment flags:
+        [image >](path)   right-float
+        [image <](path)   left-float
+        [image ><](path)  centred
+        [image _gallery](path) [image _gallery](path) side-by-side pair
+    */
+    img[alt~="_gallery"] {
+        max-width: 49.25%;
+        margin-bottom: 2.5%;
+    }
 
-  #comments {
-    text-align: left;
-  }
+    img[alt$=">"] {
+        float: right;
+    }
 
-  #madewith {
-    text-align: left;
-  }
+    img[alt$="<"] {
+        float: left;
+    }
 
+    img[alt$="><"] {
+        display: block;
+        margin: auto;
+        float: none !important;
+    }
+
+    /* Break-out layout: non-gallery images and media expand beyond the
+       container's max-width so they feel full-bleed on wider screens */
+    .container img:not(.icon):not([alt~="_gallery"]):not([alt$=">"]):not([alt$="<"]):not([alt$="><"]),
+    .container video,
+    .container iframe:not(.giscus-frame):not(.giscus):not([id^="twitter-widget-"]),
+    .container embed,
+    .container object {
+        width: min(120%, 100vw);
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: none;
+    }
+
+    /* Gallery paragraph: zero font-size removes inline whitespace between images */
+    .container p:has(img[alt~="_gallery"]) {
+        width: min(120%, 100vw);
+        position: relative;
+        left: 50%;
+        translate: -50% 0;
+        margin-block: 0;
+        font-size: 0;
+    }
+
+    /* Keep text after gallery from wrapping around floated images */
+    .container p:has(img[alt~="_gallery"]) + p:not(:has(img[alt~="_gallery"])),
+    .container p:has(img[alt~="_gallery"]) + blockquote {
+        clear: both;
+    }
+
+    /* Image links: strip underline and let the hover filter do the work */
+    .container a:has(> img:not(.icon):not([alt~="_gallery"])) {
+        display: block;
+        text-decoration: none;
+        background: none;
+    }
+
+    .container a:has(> img:not(.icon):not([alt~="_gallery"])) > img {
+        transition: filter 0.2s ease-in-out;
+        filter: grayscale(0%);
+    }
+
+    .container a:has(> img:not(.icon):not([alt~="_gallery"])):hover > img {
+        filter:
+            grayscale(100%)
+            brightness(96%)
+            contrast(110%);
+    }
+}
+
+/* Flickr embed wrapper */
+a[data-flickr-embed] { display: inline-block; line-height: 0; }
+
+a[data-flickr-embed] > iframe,
+a[data-flickr-embed] > .flickr-embed-frame,
+.flickr-embed-frame {
+    display: block;
+    border: 0;
+    box-shadow: var(--shadow-default);
+}
+
+/* Center Twitter embeds when they don't fill the container */
+.container blockquote.twitter-tweet,
+.container .twitter-tweet-rendered {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container .twitter-tweet-rendered iframe[id^="twitter-widget-"] {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* ============================================================
+   LINKS & TYPOGRAPHY
+   ============================================================ */
+
+/* Inline code inside list items */
+li p code {
+    background-color: rgb(230, 230, 230);
+    border-radius: 5px;
+    padding: 0px 2px;
+    font-size: 85%;
+}
+
+body.darkmode li p code,
+html.darkmode body li p code {
+    background-color: rgb(65, 65, 65);
+}
+
+/* Tag pill links on post/archive pages */
+.tag-link {
+    margin-right: 10px;
+}
+
+/* Circular avatar image (About page) */
+.about {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+}
+
+/* Prevent sub/sup from double-decorating inside a link */
+a:not(.icon) sub,
+a:not(.icon) sup {
+    text-decoration-line: none;
+    text-decoration: none;
+}
+
+/* If link text is bold (e.g. [**text**](...)), mirror the hover fill
+   onto the <strong>/<b> child so the highlight reaches the taller glyph box */
+a:not(.icon) > strong,
+a:not(.icon) > b {
+    background-image: inherit;
+    background-size: inherit;
+    background-position: inherit;
+    background-repeat: inherit;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    transition: background-position 0.2s ease-in;
+}
+
+a:hover:not(.icon) > strong,
+a:hover:not(.icon) > b,
+a:focus:not(.icon) > strong,
+a:focus:not(.icon) > b {
+    background-position: inherit;
+    transition: all 0.2s ease-in;
+    border-radius: 2px;
+}
+
+/* <rt> sits above the link fill area which can't reach it —
+   lock it to body text colour so it never inverts on hover */
+a:not(.icon) ruby rt {
+    color: #4c4c4f;
+}
+
+body.darkmode a:not(.icon) ruby rt,
+html.darkmode a:not(.icon) ruby rt {
+    color: rgb(151, 154, 156);
+}
+
+/* Small SVG icon helper */
+.little-svg {
+    fill: #fff;
+}
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+/* Footer row: "Made with" text on the left, social icons on the right.
+   flex-wrap allows them to stack left-aligned on narrow screens. */
+#footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-bottom: 5em;
+    line-height: 166%;
+}
+
+#madewith {
+    margin: 0;
+    font-family: "Berkeley Mono", monospace;
+    font-weight: 600;
+}
+
+/* Social icon row in the footer */
+.posisi {
+    display: flex;
+    gap: 1rem;
+}
+
+a.footer-link {
+    text-decoration: none;
+}
+
+a.footer-link:hover,
+a.footer-link:focus {
+    cursor: pointer;
+}
+
+/* Lift-on-hover for SVG icons */
+.svg-hov {
+    transition: all 0.2s ease-in-out;
+}
+
+.svg-hov:hover,
+.svg-hov:focus {
+    transform: translateY(-3px);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Social icon brand colours */
+.hexo {
+    fill: #e2001a;
+    vertical-align: middle;
+}
+
+.github    { fill: #63636f; }
+.linkedin  { fill: #0073b1; }
+.twitter   { fill: #08a0e9; }
+.instagram { fill: #e4405f; }
+.bluesky   { fill: #007bf9; }
+
+/* Pheader logo (shown below post/page content, hidden on home/archive).
+   Two images stacked in the same grid cell for a crossfade swap on theme change. */
+:where(.twelve.columns, .twelve.column):has(#logoLight, #logoDark) {
+    display: grid;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+:where(.twelve.columns, .twelve.column):has(#logoLight, #logoDark) > #logoLight,
+:where(.twelve.columns, .twelve.column):has(#logoLight, #logoDark) > #logoDark {
+    grid-area: 1 / 1;
+}
+
+#logoLight,
+#logoDark {
+    max-width: 128px;
+    height: auto;
+    transition: opacity 0.7s ease-in-out;
+}
+
+/* Light mode: show light logo */
+#logoLight { opacity: 1; }
+#logoDark  { opacity: 0; }
+
+/* Dark mode: swap to dark logo */
+body.darkmode #logoLight,
+html.darkmode #logoLight {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.darkmode #logoDark,
+html.darkmode #logoDark {
+    opacity: 1;
+}
+
+
+/* ============================================================
+   COMMENTS (Giscus)
+   ============================================================ */
+
+#comments {
+    text-align: center;
+}
+
+@media (min-width: 550px) {
+    #comments {
+        text-align: left;
+    }
+}
+
+
+/* ============================================================
+   BREADCRUMB
+   ============================================================ */
+
+.depth-breadcrumb {
+    margin-top: 5rem;
+    margin-bottom: 1.2rem;
+    font-family: "Berkeley Mono", "HYQiHei-50S", FZYouHei_GBK, "IBM Plex Sans SC", "Source Han Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.depth-breadcrumb__sep {
+    margin: 0 0.55rem;
+    opacity: 0.67;
+    font-family: "Berkeley Mono", -apple-system, BlinkMacSystemFont, monospace;
+    font-weight: 600;
+}
+
+.depth-breadcrumb__current {
+    opacity: 0.56;
+}
+
+body.darkmode .depth-breadcrumb,
+html.darkmode .depth-breadcrumb {
+    color: rgba(178, 181, 184, 0.85);
+}
+
+
+/* ============================================================
+   DETAILS / SUMMARY ANIMATION
+   ============================================================ */
+
+details > :not(summary) {
+    transform-origin: top;
+}
+
+details[open] > :not(summary) {
+    animation: details-open calc(var(--details-anim-ms) * 1ms) ease-in both;
+}
+
+details.is-closing > :not(summary) {
+    animation: details-close calc(var(--details-anim-ms) * 1ms) ease-in both;
+    pointer-events: none;
+}
+
+@keyframes details-open {
+    from {
+        opacity: 0;
+        transform: translateY(-0.35rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes details-close {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-0.35rem);
+    }
+}
+
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+
+@media print {
+    /* Hide site chrome */
+    #pheader,
+    header,
+    #header,
+    footer,
+    #footer,
+    .giscus,
+    iframe.giscus-frame,
+    .mode {
+        display: none !important;
+    }
+
+    img:not([alt~="_gallery"]) {
+        max-width: 66.67% !important;
+        width: 66.67% !important;
+        transform: none !important;
+    }
+}
+
+
+/* ============================================================
+   YOISHIGURE — INDEX PAGE
+   ============================================================ */
+
+/* Zero-height anchor headings used as scroll targets in the song list */
+.yoi-nav-anchor-only {
+    margin: 0;
+    padding: 0;
+    height: 0;
+    line-height: 0;
+    font-size: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+/* Index page link colour override: blue instead of the default red accent */
+body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a:not(.icon):not(.headerlink) {
+    color: #007bbb;
+    text-decoration: none;
+    transition:
+        color 0.2s ease-out,
+        background-position 0.2s ease-out;
+    background-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 50%,
+        #007bbb 50%
+    );
+    background-repeat: no-repeat;
+    background-size: 100% calc(200% + 2px);
+    background-position: 0 0;
+}
+
+body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a:not(.icon):not(.headerlink):hover,
+body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a:not(.icon):not(.headerlink):focus,
+body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a.yoi-page-search-hit-meta.is-active:not(.icon):not(.headerlink) {
+    background-position: 0 100%;
+    color: #E9E6E2;
+}
+
+body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a.yoi-page-search-hit-meta:not(.is-active):not(:hover):not(:focus):not(.icon):not(.headerlink) {
+    background-position: 0 0;
+    text-decoration: underline #007bbb 2px;
+}
+
+body.page-yoishigure .yoi-float-nav a:not(.icon) { --link-hover-accent: #007bbb; }
+
+/* Lyric subpages — blue link accent in tategaki content.
+   --link-hover-accent must be on the <a> itself (not a container ancestor) because
+   tcolor.ejs declares it directly on a:not(.icon), so ancestor inheritance loses
+   the cascade. Higher specificity here overrides that declaration. */
+body.page-yoishigure-sub .tategaki-content a:not(.icon):not(.headerlink):not(.color-link) {
+    --link-hover-accent: #007bbb;
+    color: #007bbb;
+    text-decoration: none;
+}
+
+body.page-yoishigure-sub .tategaki-content a:not(.icon):not(.headerlink):not(.color-link):hover,
+body.page-yoishigure-sub .tategaki-content a:not(.icon):not(.headerlink):not(.color-link):focus {
+    color: #E9E6E2;
+}
+
+/* Search hit highlights on the index page */
+body.page-yoishigure mark.yoi-page-search-hit {
+    background: color-mix(in srgb, #007bbb 24%, #fff 76%);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 0.08em;
+}
+
+body.page-yoishigure mark.yoi-page-search-hit.is-active {
+    background: #007bbb;
+    color: #e9e6e2;
+}
+
+body.darkmode.page-yoishigure mark.yoi-page-search-hit,
+html.darkmode body.page-yoishigure mark.yoi-page-search-hit {
+    background: color-mix(in srgb, #007bbb 38%, #19191a 62%);
+}
+
+body.darkmode.page-yoishigure mark.yoi-page-search-hit.is-active,
+html.darkmode body.page-yoishigure mark.yoi-page-search-hit.is-active {
+    background: #007bbb;
+    color: #e9e6e2;
+}
+
+
+/* ============================================================
+   YOISHIGURE — FLOAT NAV (desktop sidebar / mobile bottom sheet)
+   ============================================================ */
+
+/* Desktop: fixed panel to the right of the content column */
+.yoi-float-nav {
+    position: fixed;
+    top: 8rem;
+    right: max(1.2rem, calc((100vw - 960px) / 2 - 13rem));
+    z-index: 24;
+    width: max-content;
+    min-width: 20rem;
+    max-width: min(44rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 8.2rem);
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 2rem 2rem 2rem;
+    border-radius: 8px;
+    background: #EBE6E2DE;
+    box-shadow: 0 6px 12px 4px rgba(0, 123, 187, 0.12);
+    backdrop-filter: blur(8px) saturate(56%);
+    line-height: 1.35;
+}
+
+.yoi-float-nav__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.55rem;
+}
+
+.yoi-float-nav__title {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.yoi-float-nav__search {
+    margin: 0.35rem 0 0.95rem;
+}
+
+.yoi-float-nav__search-input {
+    width: 100%;
+    margin: 0;
+    height: 3.3rem;
+    padding: 0.33rem 0.87rem;
+    font-family: "iA Writer Quattro V", "HYQiHei-50S", FZYouHei_GBK, "IBM Plex Sans SC", "Source Han Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1.56rem;
+    line-height: 1.25;
+    border-radius: 4px;
+    border: 0;
+    color: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.yoi-float-nav__search-input:focus {
+    border-color: #007bbb;
+}
+
+.yoi-float-nav__search-meta {
+    margin-top: 0.42rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.yoi-float-nav__search-count {
+    margin-right: auto;
+    font-family: "Berkeley Mono", "HYQiHei-50S", FZYouHei_GBK, "IBM Plex Sans SC", "Source Han Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1.3rem;
+    opacity: 0.87;
+}
+
+.yoi-float-nav__search-btn {
+    margin: 0;
+    min-width: 2.6rem;
+    height: 2.5rem;
+    padding: 0 0.45rem;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    line-height: 1;
+    font-size: 1.35rem;
+    cursor: pointer;
+}
+
+.yoi-float-nav__search-btn:disabled {
+    cursor: default;
+    opacity: 0.33;
+}
+
+.yoi-float-nav__theme {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.25;
+    font-size: 2rem;
+}
+
+.yoi-float-nav__theme-btn {
+    cursor: pointer;
+    user-select: none;
+    display: inline-block;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    line-height: 1;
+}
+
+.yoi-float-nav__theme-btn.hidden {
+    display: none;
+}
+
+.yoi-float-nav__h {
+    margin: 0;
+    color: rgba(17, 17, 17, 0.56);
+}
+
+.yoi-float-nav__h.is-active {
+    color: rgba(0, 123, 187, 0.96);
+}
+
+.yoi-float-nav__h + .yoi-float-nav__h3 {
+    margin-top: 0.7rem;
+}
+
+.yoi-float-nav__h4 {
+    margin-left: 0.65rem;
+    margin-top: 0.22rem;
+}
+
+.yoi-float-nav__h a {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 0.25rem 0.25rem;
+    border-radius: 2px;
+    color: inherit;
+    text-decoration: none;
+    font-weight: bolder;
+    transition:
+        color 0.2s ease-in,
+        background-position 0.2s ease-in;
+    background-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 50%,
+        var(--link-hover-accent, #e2001a) 50%
+    );
+    background-repeat: no-repeat;
+    background-size: 100% calc(200% + 2px);
+    background-position: 0 0;
+}
+
+.yoi-float-nav__h a:hover,
+.yoi-float-nav__h a:focus {
+    background-position: 0 100%;
+    color: #E9E6E2;
+}
+
+.yoi-float-nav__empty {
+    margin: 0.2rem 0 0;
+}
+
+/* Toggle buttons: hidden on desktop, shown in mobile bottom sheet */
+.yoi-float-nav__list-toggle,
+.yoi-float-nav__search-toggle {
+    display: none;
+}
+
+/* Dark mode overrides for float nav */
+body.darkmode .yoi-float-nav,
+html.darkmode .yoi-float-nav {
+    background: #19191ADE;
+    box-shadow: 0 6px 12px 4px rgba(0, 123, 187, 0.12);
+    backdrop-filter: blur(8px) saturate(67%);
+}
+
+body.darkmode .yoi-float-nav__h,
+html.darkmode .yoi-float-nav__h {
+    color: color-mix(in srgb, rgb(151, 154, 156) 56%, transparent);
+}
+
+body.darkmode .yoi-float-nav__h.is-active,
+html.darkmode .yoi-float-nav__h.is-active {
+    color: color-mix(in srgb, rgb(0, 123, 187) 72%, transparent);
+}
+
+body.darkmode .yoi-float-nav__search-input,
+html.darkmode .yoi-float-nav__search-input {
+    background: color-mix(in srgb, #19191a 76%, transparent);
+    border-color: color-mix(in srgb, rgb(151, 154, 156) 28%, transparent);
+}
+
+/* Mobile: nav collapses into a bottom sheet with a persistent bar strip */
+@media (max-width: 1380px) {
+    /* Repositioned as a full-width bottom sheet anchored to the screen edge */
+    .yoi-float-nav {
+        top: unset;
+        right: unset;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        max-height: unset;
+        box-sizing: border-box;
+        border-radius: 8px 8px 0 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        line-height: 1;
+    }
+
+    /* Bar strip: always visible, pinned to the bottom of the flex column */
+    .yoi-float-nav__bar {
+        order: 3;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+        padding: 0 1.2rem;
+        height: 4.4rem;
+        flex-shrink: 0;
+        margin-bottom: 0;
+    }
+
+    .yoi-float-nav__title {
+        display: none;
+    }
+
+    .yoi-float-nav__theme {
+        font-size: 2.4rem;
+        padding: 1em;
+    }
+
+    /* Show toggle buttons on mobile */
+    .yoi-float-nav__list-toggle,
+    .yoi-float-nav__search-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin: 0 0 0 1em;
+        padding: 0 0.8rem;
+        height: 4.4rem;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        font-size: 1.4rem;
+        color: inherit;
+        line-height: 1;
+        letter-spacing: 0.05em;
+        transition: color 0.2s ease-in;
+    }
+
+    /* Active state for open panel toggles */
+    .yoi-float-nav.yoi--list-open .yoi-float-nav__list-toggle,
+    .yoi-float-nav.yoi--search-open .yoi-float-nav__search-toggle {
+        color: #007bbb;
+    }
+
+    /* Panels: collapsed by default, animate open above the bar */
+    .yoi-float-nav__search,
+    .yoi-float-nav__list {
+        order: 1;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+        padding: 0 1.4rem;
+        margin: 0;
+        transition:
+            max-height 0.3s ease,
+            opacity 0.2s ease;
+    }
+
+    .yoi-float-nav__list {
+        order: 2;
+    }
+
+    .yoi-float-nav.yoi--list-open .yoi-float-nav__list,
+    .yoi-float-nav.yoi--search-open .yoi-float-nav__search {
+        max-height: 60vh;
+        overflow-y: auto;
+        opacity: 1;
+        pointer-events: auto;
+        padding: 1.2rem 1.4rem;
+        transition:
+            max-height 0.3s ease,
+            opacity 0.2s ease;
+    }
+}
+
+
+/* ============================================================
+   YOISHIGURE — EMBED MODAL
+   ============================================================ */
+
+.yoi-embed-modal[hidden] {
+    display: none;
+}
+
+.yoi-embed-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.6vh 1rem;
+    box-sizing: border-box;
+}
+
+.yoi-embed-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    transition: opacity 0.2s ease-in;
+}
+
+.yoi-embed-modal__dialog {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    max-width: 96vw;
+    max-height: calc(100vh - 6vh);
+    margin: 0;
+    padding: 0.7rem;
+    border-radius: 10px;
+    background: #EBE6E2F5;
+    box-shadow: 0 12px 24px 12px rgba(0, 123, 187, 0.12);
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+        opacity 0.2s ease-in,
+        transform 0.2s ease-in;
+}
+
+.yoi-embed-modal__toolbar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.yoi-embed-modal__close {
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+    padding: 0.08rem 0.4rem;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-size: 2.2rem;
+    line-height: 1;
+    font-family: inherit;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
+    height: auto;
+}
+
+.yoi-embed-modal__frame {
+    border: 0;
+    border-radius: 8px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+        opacity 0.2s ease-in,
+        transform 0.2s ease-in;
+    background: transparent;
+}
+
+/* Visible state: fade in backdrop and dialog */
+.yoi-embed-modal.is-visible .yoi-embed-modal__backdrop {
+    opacity: 1;
+}
+
+.yoi-embed-modal.is-visible .yoi-embed-modal__dialog {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.yoi-embed-modal.is-visible .yoi-embed-modal__frame {
+    transform: translateY(0);
+}
+
+body.darkmode .yoi-embed-modal__dialog,
+html.darkmode .yoi-embed-modal__dialog {
+    background: #19191ADE;
+}
+
+/* Suppress link transition while embed is opening to avoid visual flash */
+html.yoi-embed-open .tategaki-content a:not(.icon),
+html.yoi-embed-opening .tategaki-content a:not(.icon),
+.tategaki-content a.yoi-embed-opening-link:not(.icon) {
+    transition: none !important;
 }
