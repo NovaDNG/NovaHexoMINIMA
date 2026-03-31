@@ -1,0 +1,395 @@
+<aside class="yoi-float-nav" aria-label="Yoishigure section navigation">
+  <div class="yoi-float-nav__bar">
+    <h4 class="yoi-float-nav__title">快速導覽</h4>
+    <div class="yoi-float-nav__theme" aria-label="Theme switch">
+      <button
+        type="button"
+        class="yoi-float-nav__theme-btn"
+        data-theme-role="dark"
+        onclick="setDarkMode(true)"
+      ><%= theme.switch_dark %></button>
+      <button
+        type="button"
+        class="yoi-float-nav__theme-btn hidden"
+        data-theme-role="light"
+        onclick="setDarkMode(false)"
+      ><%= theme.switch_light %></button>
+    </div>
+    <button class="yoi-float-nav__list-toggle" type="button" aria-label="導覽列表">目錄</button>
+    <button class="yoi-float-nav__search-toggle" type="button" aria-label="搜尋">搜尋</button>
+  </div>
+  <div class="yoi-float-nav__search" role="search" aria-label="搜尋本頁內容">
+    <input
+      type="search"
+      class="yoi-float-nav__search-input"
+      placeholder="搜尋"
+      spellcheck="false"
+      autocomplete="off"
+    >
+    <div class="yoi-float-nav__search-meta">
+      <span class="yoi-float-nav__search-count" aria-live="polite"></span>
+      <button type="button" class="yoi-float-nav__search-btn" data-yoi-search-nav="-1" aria-label="Previous match"><svg width="0.9em" height="0.9em" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><polygon points="5,2 9,8 1,8"/></svg></button>
+      <button type="button" class="yoi-float-nav__search-btn" data-yoi-search-nav="1" aria-label="Next match"><svg width="0.9em" height="0.9em" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><polygon points="5,8 9,2 1,2"/></svg></button>
+    </div>
+  </div>
+  <nav class="yoi-float-nav__list" aria-label="Page sections"></nav>
+</aside>
+
+<script>
+  (function () {
+    // Build the nav list from the live DOM instead of relying on EJS regex extraction.
+    // querySelectorAll gives an accurate, parser-built view of what's on the page.
+    function buildNavList() {
+      var nav = document.querySelector('.yoi-float-nav');
+      if (!nav) return;
+      var list = nav.querySelector('.yoi-float-nav__list');
+      if (!list) return;
+
+      var scope = document.querySelector('body.page-yoishigure .trans');
+      if (!scope) return;
+
+      var headings = Array.prototype.slice.call(scope.querySelectorAll('h3[id], h4[id]'));
+
+      if (!headings.length) {
+        list.innerHTML = '<p class="yoi-float-nav__empty">No headings found.</p>';
+        return;
+      }
+
+      headings.forEach(function (heading) {
+        var level = parseInt(heading.tagName.charAt(1), 10);
+        var id = heading.id;
+
+        // Clone so we can strip headerlink anchors without touching the page
+        var clone = heading.cloneNode(true);
+        Array.prototype.forEach.call(clone.querySelectorAll('a.headerlink'), function (el) {
+          el.parentNode.removeChild(el);
+        });
+        var text = (clone.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!text) return;
+
+        var row = document.createElement(level === 3 ? 'h3' : 'h4');
+        row.className = 'yoi-float-nav__h yoi-float-nav__h' + level;
+
+        var link = document.createElement('a');
+        link.className = 'color-link';
+        link.href = '#' + id;
+        link.textContent = text;
+
+        row.appendChild(link);
+        list.appendChild(row);
+      });
+    }
+
+    function openAncestorDetails(node) {
+      if (!node || !node.closest) return;
+      var details = node.closest('details');
+      while (details) {
+        details.open = true;
+        var parent = details.parentElement;
+        details = parent && parent.closest ? parent.closest('details') : null;
+      }
+    }
+
+    function initYoiInPageSearch() {
+      var nav = document.querySelector('.yoi-float-nav');
+      if (!nav || nav.dataset.searchBound === '1') return;
+      nav.dataset.searchBound = '1';
+
+      var scope = document.querySelector('body.page-yoishigure .trans');
+      if (!scope) return;
+
+      var input = nav.querySelector('.yoi-float-nav__search-input');
+      var countEl = nav.querySelector('.yoi-float-nav__search-count');
+      var buttons = Array.prototype.slice.call(nav.querySelectorAll('[data-yoi-search-nav]'));
+      if (!input || !countEl || !buttons.length) return;
+
+      var MARK_SELECTOR = 'mark.yoi-page-search-hit';
+      var META_SELECTOR = '[data-yoi-search], a[title]';
+      var META_MATCH_CLASS = 'yoi-page-search-hit-meta';
+      var hits = [];
+      var activeIndex = -1;
+      var metaHits = [];
+
+      function collectCurrentMarks() {
+        return Array.prototype.slice.call(scope.querySelectorAll(MARK_SELECTOR));
+      }
+
+      function clearMarks() {
+        var marks = collectCurrentMarks();
+        var touchedParents = [];
+        marks.forEach(function (mark) {
+          var parent = mark.parentNode;
+          if (parent && touchedParents.indexOf(parent) === -1) touchedParents.push(parent);
+          mark.replaceWith(document.createTextNode(mark.textContent || ''));
+        });
+
+        touchedParents.forEach(function (parent) {
+          if (parent && parent.normalize) parent.normalize();
+        });
+      }
+
+      function clearMetaHits() {
+        if (!metaHits.length) return;
+        metaHits.forEach(function (el) {
+          el.classList.remove(META_MATCH_CLASS);
+          el.classList.remove('is-active');
+        });
+        metaHits = [];
+      }
+
+      function updateCount() {
+        if (!hits.length) {
+          countEl.textContent = input.value.trim() ? 'No match' : '';
+          buttons.forEach(function (btn) { btn.disabled = true; });
+          return;
+        }
+
+        countEl.textContent = String(activeIndex + 1) + ' / ' + String(hits.length);
+        buttons.forEach(function (btn) { btn.disabled = false; });
+      }
+
+      function setActive(index, shouldScroll) {
+        if (!hits.length) {
+          activeIndex = -1;
+          updateCount();
+          return;
+        }
+
+        if (activeIndex >= 0 && hits[activeIndex]) {
+          hits[activeIndex].classList.remove('is-active');
+        }
+
+        activeIndex = (index % hits.length + hits.length) % hits.length;
+        var active = hits[activeIndex];
+        active.classList.add('is-active');
+        openAncestorDetails(active);
+
+        if (shouldScroll) {
+          active.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }
+
+        updateCount();
+      }
+
+      function highlight(query) {
+        clearMarks();
+        clearMetaHits();
+        hits = [];
+        activeIndex = -1;
+
+        if (!query) {
+          updateCount();
+          return;
+        }
+
+        var needle = query.toLocaleLowerCase();
+        var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+          acceptNode: function (node) {
+            if (!node || !node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            var parent = node.parentElement;
+            if (!parent) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('.yoi-float-nav')) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('.yoi-embed-modal')) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('script, style, code, pre, textarea, noscript')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        nodes.forEach(function (node) {
+          var raw = node.nodeValue || '';
+          var lower = raw.toLocaleLowerCase();
+          var found = lower.indexOf(needle);
+          if (found === -1) return;
+
+          var frag = document.createDocumentFragment();
+          var start = 0;
+
+          while (found !== -1) {
+            if (found > start) {
+              frag.appendChild(document.createTextNode(raw.slice(start, found)));
+            }
+
+            var mark = document.createElement('mark');
+            mark.className = 'yoi-page-search-hit';
+            mark.textContent = raw.slice(found, found + query.length);
+            frag.appendChild(mark);
+            hits.push(mark);
+
+            start = found + query.length;
+            found = lower.indexOf(needle, start);
+          }
+
+          if (start < raw.length) {
+            frag.appendChild(document.createTextNode(raw.slice(start)));
+          }
+
+          node.parentNode.replaceChild(frag, node);
+        });
+
+        var metaCandidates = Array.prototype.slice.call(scope.querySelectorAll(META_SELECTOR));
+        metaCandidates.forEach(function (el) {
+          var meta = '';
+          if (el.hasAttribute && el.hasAttribute('data-yoi-search')) {
+            meta += ' ' + String(el.getAttribute('data-yoi-search') || '');
+          }
+          if (el.tagName === 'A' && el.hasAttribute && el.hasAttribute('title')) {
+            meta += ' ' + String(el.getAttribute('title') || '');
+          }
+          meta = meta.trim().toLocaleLowerCase();
+          if (!meta || meta.indexOf(needle) === -1) return;
+          if (el.querySelector && el.querySelector(MARK_SELECTOR)) return;
+          el.classList.add(META_MATCH_CLASS);
+          metaHits.push(el);
+          hits.push(el);
+        });
+
+        hits.sort(function (a, b) {
+          if (a === b) return 0;
+          if (!a || !b || !a.compareDocumentPosition) return 0;
+          var pos = a.compareDocumentPosition(b);
+          if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+          if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+          return 0;
+        });
+
+        if (hits.length) {
+          setActive(0, true);
+        } else {
+          updateCount();
+        }
+      }
+
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var step = Number(btn.getAttribute('data-yoi-search-nav')) || 1;
+          setActive(activeIndex + step, true);
+        });
+      });
+
+      input.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        if (!hits.length) return;
+        setActive(activeIndex + (event.shiftKey ? -1 : 1), true);
+      });
+
+      input.addEventListener('input', function () {
+        highlight(input.value.trim());
+      });
+
+      input.addEventListener('search', function () {
+        highlight(input.value.trim());
+      });
+
+      updateCount();
+    }
+
+    function initYoiFloatNavScrollspy() {
+      var nav = document.querySelector('.yoi-float-nav');
+      if (!nav || nav.dataset.scrollspyBound === '1') return;
+      nav.dataset.scrollspyBound = '1';
+
+      var rows = Array.prototype.slice.call(nav.querySelectorAll('.yoi-float-nav__h'));
+      var entries = rows.map(function (row) {
+        var link = row.querySelector('a[href^="#"]');
+        if (!link) return null;
+
+        var rawId = (link.getAttribute('href') || '').slice(1);
+        if (!rawId) return null;
+
+        var decodedId = rawId;
+        try { decodedId = decodeURIComponent(rawId); } catch (e) {}
+
+        var target = document.getElementById(decodedId) || document.getElementById(rawId);
+        if (!target) return null;
+
+        return { row: row, link: link, target: target };
+      }).filter(Boolean);
+
+      if (!entries.length) return;
+
+      function setActive(activeEntry) {
+        entries.forEach(function (entry) {
+          entry.row.classList.toggle('is-active', entry === activeEntry);
+        });
+      }
+
+      function updateActiveByScroll() {
+        var active = entries[0];
+        var threshold = Math.max(120, window.innerHeight * 0.22);
+
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].target.getBoundingClientRect().top - threshold <= 0) {
+            active = entries[i];
+          } else {
+            break;
+          }
+        }
+
+        setActive(active);
+      }
+
+      var ticking = false;
+      function requestUpdate() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(function () {
+          ticking = false;
+          updateActiveByScroll();
+        });
+      }
+
+      entries.forEach(function (entry) {
+        entry.link.addEventListener('click', function () {
+          setActive(entry);
+        });
+      });
+
+      window.addEventListener('scroll', requestUpdate, { passive: true });
+      window.addEventListener('resize', requestUpdate);
+      requestUpdate();
+    }
+
+    function initMobileToggles() {
+      var nav = document.querySelector('.yoi-float-nav');
+      if (!nav) return;
+      var listBtn = nav.querySelector('.yoi-float-nav__list-toggle');
+      var searchBtn = nav.querySelector('.yoi-float-nav__search-toggle');
+      if (!listBtn || !searchBtn) return;
+      var list = nav.querySelector('.yoi-float-nav__list');
+      listBtn.addEventListener('click', function () {
+        nav.classList.toggle('yoi--list-open');
+        nav.classList.remove('yoi--search-open');
+      });
+      searchBtn.addEventListener('click', function () {
+        var opening = !nav.classList.contains('yoi--search-open');
+        nav.classList.toggle('yoi--search-open');
+        nav.classList.remove('yoi--list-open');
+        if (opening) {
+          var input = nav.querySelector('.yoi-float-nav__search-input');
+          if (input) setTimeout(function () { input.focus(); }, 0);
+        }
+      });
+      if (list) list.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('a')) nav.classList.remove('yoi--list-open');
+      });
+    }
+
+    function init() {
+      buildNavList();
+      initYoiFloatNavScrollspy();
+      initYoiInPageSearch();
+      initMobileToggles();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init, { once: true });
+      return;
+    }
+
+    init();
+  })();
+</script>

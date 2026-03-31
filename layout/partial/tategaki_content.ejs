@@ -1,0 +1,14 @@
+<% if (useTategaki) { %>
+  <%# Tategaki mode: vertical article inside a horizontal scroll container %>
+  <section class="tategaki-stage">
+    <div class="tategaki-scroll js-tategaki-scroll">
+      <article class="tategaki-content">
+        <%- content %>
+      </article>
+    </div>
+  </section>
+  <%- partial('partial/tategaki_script') %>
+<% } else { %>
+  <%# Normal mode: render content as-is %>
+  <%- content %>
+<% } %>

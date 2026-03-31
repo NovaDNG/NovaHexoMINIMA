@@ -1,0 +1,103 @@
+<%
+function safeDecode(str) {
+  try { return decodeURIComponent(str); } catch (e) { return str; }
+}
+
+function normalizeRoute(p) {
+  return String(p || '')
+    .replace(/^https?:\/\/[^/]+/i, '')
+    .replace(/[?#].*$/, '')
+    .replace(/index\.html$/i, '')
+    .replace(/\.html$/i, '')
+    .replace(/^\/+|\/+$/g, '');
+}
+
+function normalizeSource(p) {
+  return String(p || '')
+    .replace(/^\/+|\/+$/g, '')
+    .replace(/\.(md|markdown)$/i, '')
+    .replace(/\/index$/i, '');
+}
+
+function toRelativeUrl(u) {
+  var s = String(u || '')
+    .replace(/^https?:\/\/[^/]+/i, '');
+  if (!s) return '';
+  if (s.charAt(0) !== '/') s = '/' + s;
+  if (s.length > 1) s = s.replace(/\/+$/g, '');
+  return s;
+}
+
+var crumbMetaBySource = Object.create(null);
+
+// Prefer page front matter from source markdown
+if (site && site.pages) {
+  site.pages.forEach(function (p) {
+    if (!p || !p.title) return;
+    var key = normalizeSource(p.source);
+    if (key && !crumbMetaBySource[key]) {
+      crumbMetaBySource[key] = {
+        title: p.title,
+        href: toRelativeUrl(p.permalink || (p.path ? url_for(p.path) : ''))
+      };
+    }
+  });
+}
+
+// Optional fallback to posts (in case some crumbs point to posts)
+if (site && site.posts) {
+  site.posts.forEach(function (p) {
+    if (!p || !p.title) return;
+    var key = normalizeSource(p.source);
+    if (key && !crumbMetaBySource[key]) {
+      crumbMetaBySource[key] = {
+        title: p.title,
+        href: toRelativeUrl(p.permalink || (p.path ? url_for(p.path) : ''))
+      };
+    }
+  });
+}
+
+function metaForCrumbPath(crumbPath) {
+  var key = normalizeRoute(crumbPath);
+  return crumbMetaBySource[key] || null;
+}
+
+var OMIT_LEVELS = 1; // hide Home only
+
+var cleanPath = normalizeRoute(page.path || '');
+var segments = cleanPath ? cleanPath.split('/').filter(Boolean) : [];
+
+var allCrumbs = [{ label: 'Home', href: url_for('/'), isLast: false }];
+
+segments.forEach(function (seg, i) {
+  var isLast = i === segments.length - 1;
+  var crumbPath = segments.slice(0, i + 1).join('/');
+  var meta = metaForCrumbPath(crumbPath);
+  var href = (meta && meta.href) ? meta.href : toRelativeUrl('/' + crumbPath);
+  var label = (meta && meta.title) ? meta.title : safeDecode(seg).replace(/[-_]+/g, ' ');
+  if (isLast && page.title) label = page.title;
+
+  allCrumbs.push({
+    label: label,
+    href: url_for(href),
+    isLast: isLast
+  });
+});
+
+var visibleCrumbs = allCrumbs.slice(OMIT_LEVELS);
+var showBreadcrumb = visibleCrumbs.length >= 2;
+%>
+
+<% if (showBreadcrumb) { %>
+  <nav class="depth-breadcrumb" aria-label="Breadcrumb">
+    <% visibleCrumbs.forEach(function (c, idx) { %>
+      <% if (idx > 0) { %><span class="depth-breadcrumb__sep">></span><% } %>
+      <% if (c.isLast) { %>
+        <span class="depth-breadcrumb__current"><%= c.label %></span>
+      <% } else { %>
+        <a href="<%- c.href %>"><%= c.label %></a>
+      <% } %>
+    <% }) %>
+  </nav>
+<% } %>
