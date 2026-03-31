@@ -192,6 +192,53 @@
   <% if (page.yoishigure_index || page.tategaki) { %>
   <%- partial('partial/yoishigure_embed_preview') %>
   <% } %>
+  <script>
+    (function () {
+      var DETAILS_ANIM_MS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--details-anim-ms')) || 200;
+
+      function isNativeSummary(el) {
+        return el && el.tagName === 'SUMMARY' && el.parentElement && el.parentElement.tagName === 'DETAILS';
+      }
+
+      function toggleDetailsWithCloseAnim(details) {
+        if (!details || details.classList.contains('is-closing')) return;
+
+        if (details.open) {
+          details.classList.add('is-closing');
+          window.setTimeout(function () {
+            details.open = false;
+            details.classList.remove('is-closing');
+          }, DETAILS_ANIM_MS);
+          return;
+        }
+
+        details.open = true;
+      }
+
+      document.addEventListener('click', function (event) {
+        var target = event.target;
+        if (!target || !target.closest) return;
+
+        var summary = target.closest('summary');
+        if (!isNativeSummary(summary)) return;
+        if (summary.closest('.tategaki-content')) return;
+
+        event.preventDefault();
+        toggleDetailsWithCloseAnim(summary.parentElement);
+      }, true);
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+        var target = event.target;
+        if (!isNativeSummary(target)) return;
+        if (target.closest('.tategaki-content')) return;
+
+        event.preventDefault();
+        toggleDetailsWithCloseAnim(target.parentElement);
+      }, true);
+    })();
+  </script>
   <script src="<%- theme.nanobar %>"></script>
   <script>
     var options = {

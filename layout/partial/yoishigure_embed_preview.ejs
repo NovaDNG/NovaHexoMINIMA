@@ -95,15 +95,20 @@
       clearOpeningLink();
       openingLink = anchor;
       openingLink.classList.add('yoi-embed-opening-link');
-      openingLink.style.setProperty('background-image', 'none', 'important');
       openingLink.style.setProperty('transition', 'none', 'important');
-      openingLink.style.setProperty('color', window.getComputedStyle(openingLink).color, 'important');
+      var computed = window.getComputedStyle(openingLink);
+      openingLink.style.setProperty('color', computed.color, 'important');
+      openingLink.style.setProperty('background-image', computed.backgroundImage, 'important');
+      openingLink.style.setProperty('background-position', computed.backgroundPosition, 'important');
+      openingLink.style.setProperty('background-size', computed.backgroundSize, 'important');
     }
 
     function clearOpeningLink() {
       if (!openingLink) return;
       openingLink.classList.remove('yoi-embed-opening-link');
       openingLink.style.removeProperty('background-image');
+      openingLink.style.removeProperty('background-position');
+      openingLink.style.removeProperty('background-size');
       openingLink.style.removeProperty('transition');
       openingLink.style.removeProperty('color');
       openingLink = null;
