@@ -349,29 +349,75 @@
         updateEdgeFadeState();
       }, { passive: false });
 
+      // -----------------------------------------------------------------------
+      // Dynamic height: measure content to minimize text wrapping.
+      // In vertical-rl the container height controls column length.
+      // We temporarily unconstrain it, find the tallest child's natural
+      // height, then clamp between a floor and a viewport-relative cap.
+      // -----------------------------------------------------------------------
+      function computeAndApplyDynamicHeight() {
+        if (mobileQuery.matches) {
+          el.style.removeProperty('height');
+          return;
+        }
+
+        // In vertical-rl, height = inline size.  Setting the content to
+        // `max-content` lets it size itself to the tallest column needed
+        // so that no soft wrapping occurs within any paragraph/stanza.
+        content.style.height = 'max-content';
+        void content.offsetHeight; // force synchronous layout
+        var idealH = content.offsetHeight;
+        content.style.height = ''; // restore CSS `height: 100%`
+
+        if (idealH <= 0) {
+          el.style.removeProperty('height');
+          return;
+        }
+
+        var target = Math.ceil(idealH) + 48; // breathing room for scrollbar gutter
+
+        // In an embed iframe the parent page controls the frame size,
+        // so skip the viewport cap here to avoid a circular constraint.
+        var isEmbed = el.closest('.yoi-embed-root');
+        if (!isEmbed) {
+          var cap = Math.floor(window.innerHeight * 0.8);
+          target = Math.max(240, Math.min(target, cap));
+        }
+
+        el.style.height = target + 'px';
+      }
+ 
       // Shared initializer used by first paint and viewport mode changes.
       function initializeViewport() {
+        computeAndApplyDynamicHeight();
         scrollToRightEdge();
-        updateEdgeFadeState();
       }
-
+ 
       // Multi-pass initialization for stable first paint alignment.
       initializeViewport();
       requestAnimationFrame(initializeViewport);
       requestAnimationFrame(function () {
         requestAnimationFrame(initializeViewport);
       });
-
+ 
       // Re-run initialization only on viewport-level changes.
       window.addEventListener('load', initializeViewport, { once: true });
       window.addEventListener('resize', initializeViewport);
       // Intentionally avoid observing content size changes.
       // Expanding/collapsing <details> changes content width and should not force re-alignment.
-
+ 
       if (mobileQuery.addEventListener) {
         mobileQuery.addEventListener('change', initializeViewport);
       } else if (mobileQuery.addListener) {
         mobileQuery.addListener(initializeViewport);
+      }
+ 
+      // Re-measure after fonts finish loading — glyph metrics affect column height.
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () {
+          computeAndApplyDynamicHeight();
+          if (!userInteracted) scrollToRightEdge();
+        }).catch(function () {});
       }
     }
 
