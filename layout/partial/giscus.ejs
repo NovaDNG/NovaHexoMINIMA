@@ -20,7 +20,7 @@
 
       function isDarkMode() {
         // 1) Current DOM state (may be applied very early or slightly later)
-        if (document.body && document.body.classList.contains('darkmode')) return true;
+        if (document.documentElement.classList.contains('darkmode')) return true;
 
         // 2) Persisted preference (your theme uses preferredTheme)
         var v = getPreferredThemeValue();
@@ -113,11 +113,11 @@
       // Boot
       loadGiscus();
 
-      // React to theme toggles (your theme switch toggles `body.darkmode`)
+      // React to theme toggles (theme switch toggles `html.darkmode`)
       var mo = new MutationObserver(function () {
         postSetTheme(getGiscusTheme());
       });
-      mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
       // React to system theme changes (if user never set preferredTheme)
       if (window.matchMedia) {

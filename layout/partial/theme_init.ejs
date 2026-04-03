@@ -1,32 +1,10 @@
 <script>
   (function () {
     var media = window.matchMedia('(prefers-color-scheme: dark)');
-    var root = document.documentElement;
-
-    function collectThemeButtons() {
-      var darkBtns = Array.prototype.slice.call(document.querySelectorAll('[data-theme-role="dark"]'));
-      var lightBtns = Array.prototype.slice.call(document.querySelectorAll('[data-theme-role="light"]'));
-
-      var legacyDarkBtn = document.getElementById('darkBtn');
-      var legacyLightBtn = document.getElementById('lightBtn');
-
-      if (legacyDarkBtn && darkBtns.indexOf(legacyDarkBtn) === -1) {
-        darkBtns.push(legacyDarkBtn);
-      }
-      if (legacyLightBtn && lightBtns.indexOf(legacyLightBtn) === -1) {
-        lightBtns.push(legacyLightBtn);
-      }
-
-      return {
-        darkBtns: darkBtns,
-        lightBtns: lightBtns
-      };
-    }
 
     function syncThemeControls(isDark) {
-      var controls = collectThemeButtons();
-      var darkBtns = controls.darkBtns;
-      var lightBtns = controls.lightBtns;
+      var darkBtns = document.querySelectorAll('[data-theme-role="dark"]');
+      var lightBtns = document.querySelectorAll('[data-theme-role="light"]');
       if (!darkBtns.length && !lightBtns.length) return;
 
       if (isDark) {
@@ -39,10 +17,7 @@
     }
 
     function applyTheme(isDark) {
-      root.classList.toggle('darkmode', isDark);
-      if (document.body) {
-        document.body.classList.toggle('darkmode', isDark);
-      }
+      document.documentElement.classList.toggle('darkmode', isDark);
       syncThemeControls(isDark);
     }
 
@@ -61,7 +36,7 @@
     applyTheme(preferredIsDark());
 
     document.addEventListener('DOMContentLoaded', function () {
-      applyTheme(root.classList.contains('darkmode'));
+      applyTheme(document.documentElement.classList.contains('darkmode'));
     }, { once: true });
 
     function handleSystemThemeChange(e) {
