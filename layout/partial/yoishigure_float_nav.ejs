@@ -511,23 +511,76 @@
       nav.dataset.revealBound = '1';
 
       var REVEAL_DELAY_MS = 90;
-      var SAFETY_MS = 260;
+      var CSS_WAIT_SAFETY_MS = 1200;
       var revealed = false;
+      var cssReady = false;
+      var cssWatchDone = false;
 
       function reveal() {
         if (revealed) return;
         revealed = true;
+        // Avoid first-show opacity tween; translucent nav background otherwise
+        // appears lighter during the fade from 0 -> 1.
+        nav.style.setProperty('transition', 'none', 'important');
         nav.classList.remove('yoi--booting');
         nav.classList.add('yoi--ready');
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            nav.style.removeProperty('transition');
+          });
+        });
       }
 
-      // Reveal after layout/state computation settles, without waiting for webfonts.
-      requestAnimationFrame(function () {
+      function revealAfterLayout() {
         requestAnimationFrame(function () {
-          window.setTimeout(reveal, REVEAL_DELAY_MS);
+          requestAnimationFrame(function () {
+            window.setTimeout(reveal, REVEAL_DELAY_MS);
+          });
         });
-      });
-      window.setTimeout(reveal, SAFETY_MS);
+      }
+
+      function markCssReadyAndReveal() {
+        if (cssReady) return;
+        cssReady = true;
+        revealAfterLayout();
+      }
+
+      function isNavCssReady() {
+        // In yoishigure.css the nav is a CSS grid; before that stylesheet loads
+        // it remains block-level, so this is a reliable readiness signal.
+        var styles = window.getComputedStyle(nav);
+        return styles.display === 'grid';
+      }
+
+      function watchCssReadyUntilTimeout() {
+        if (cssWatchDone) return;
+        if (isNavCssReady()) {
+          cssWatchDone = true;
+          markCssReadyAndReveal();
+          return;
+        }
+
+        requestAnimationFrame(watchCssReadyUntilTimeout);
+      }
+
+      var yoishigureStylesheet = document.querySelector('link[rel="stylesheet"][href*="css/yoishigure.css"]');
+      if (!yoishigureStylesheet) {
+        markCssReadyAndReveal();
+        return;
+      }
+
+      if (isNavCssReady()) {
+        markCssReadyAndReveal();
+        return;
+      }
+
+      yoishigureStylesheet.addEventListener('load', markCssReadyAndReveal, { once: true });
+      yoishigureStylesheet.addEventListener('error', markCssReadyAndReveal, { once: true });
+      watchCssReadyUntilTimeout();
+      window.setTimeout(function () {
+        cssWatchDone = true;
+        markCssReadyAndReveal();
+      }, CSS_WAIT_SAFETY_MS);
     }
 
     function init() {

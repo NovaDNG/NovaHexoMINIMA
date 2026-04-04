@@ -79,6 +79,37 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <style id="critical-theme-bg">
+    html { background: #eae6e2; }
+    html.darkmode { background: rgb(25, 25, 26); }
+    body { background: transparent; }
+  </style>
+
+  <!-- Theme preflight: apply preferred theme before first paint to avoid flash -->
+  <script>
+    (function () {
+      var isDark = false;
+      try {
+        var stored = localStorage.getItem('preferredTheme');
+        if (stored === 'dark') {
+          isDark = true;
+        } else if (stored === 'light') {
+          isDark = false;
+        } else {
+          isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+      } catch (e) {
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+
+      if (isDark) {
+        document.documentElement.classList.add('darkmode');
+      } else {
+        document.documentElement.classList.remove('darkmode');
+      }
+    })();
+  </script>
+
   <!-- Preload fonts
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <script>
@@ -96,13 +127,11 @@
 
   <% if (page.yoishigure_index || page.tategaki) { %>
   <style id="critical-yoi-float-nav">
-    @keyframes yoiFadeOnly {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .page-yoishigure .trans {
-      animation-name: yoiFadeOnly;
+    .page-yoishigure .trans,
+    .page-yoishigure-sub .trans {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
     }
 
     .yoi-float-nav {
@@ -112,6 +141,15 @@
       z-index: 24;
       width: 4.9rem;
       max-width: calc(100vw - 0.8rem);
+      background: #EBE6E2DE;
+      box-shadow: 0 6px 12px 8px rgba(0, 123, 187, 0.12);
+      backdrop-filter: blur(8px) saturate(56%);
+    }
+
+    html.darkmode .yoi-float-nav {
+      background: #19191ADE;
+      box-shadow: 0 6px 12px 8px rgba(0, 123, 187, 0.12);
+      backdrop-filter: blur(8px) saturate(67%);
     }
 
     .yoi-float-nav.yoi--booting {

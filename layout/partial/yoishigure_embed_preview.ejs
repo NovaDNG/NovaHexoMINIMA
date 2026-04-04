@@ -19,7 +19,7 @@
     let parsing = false;
     let clickToken = 0;
     let openingLink = null;
-    let fitTimer = 0;
+    let fitTimers = [];
     let closeTimer = 0;
     let embedPaneHeightPx = 0;
 
@@ -28,6 +28,8 @@
     const EMBED_VIEWPORT_RATIO = 0.94;
     const EMBED_DEFAULT_WIDTH = 1120;
     const EMBED_DEFAULT_HEIGHT_RATIO = 0.66;
+    const EMBED_FIT_DELAYS_AFTER_LOAD = [90, 240, 480];
+    const EMBED_FIT_DELAYS_AFTER_REVEAL = [120, 320, 680, 1200];
 
     const styleHrefs = [...document.querySelectorAll('link[rel="stylesheet"]')]
       .map(link => link.getAttribute('href'))
@@ -203,6 +205,20 @@ ${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
       frame.style.height = Math.min(maxHeight, Math.max(420, measured + 2)) + 'px';
     }
 
+    function clearFitTimers() {
+      if (!fitTimers.length) return;
+      fitTimers.forEach(id => window.clearTimeout(id));
+      fitTimers = [];
+    }
+
+    function scheduleDelayedHeightFits(token, delays) {
+      clearFitTimers();
+      delays.forEach(delay => {
+        const id = window.setTimeout(() => fitFrameHeightToContent(token), delay);
+        fitTimers.push(id);
+      });
+    }
+
     function openModal() {
       if (closeTimer) {
         window.clearTimeout(closeTimer);
@@ -230,10 +246,7 @@ ${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
       frame.style.opacity = '';
       dialog.style.removeProperty('opacity');
       dialog.style.removeProperty('transform');
-      if (fitTimer) {
-        window.clearTimeout(fitTimer);
-        fitTimer = 0;
-      }
+      clearFitTimers();
       parsing = false;
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
@@ -298,10 +311,12 @@ ${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
         frame.addEventListener('load', function onFrameLoad() {
           if (token !== clickToken) return;
           fitFrameHeightToContent(token);
+          scheduleDelayedHeightFits(token, EMBED_FIT_DELAYS_AFTER_LOAD);
 
           function revealFrame() {
             if (token !== clickToken) return;
             fitFrameHeightToContent(token);
+            scheduleDelayedHeightFits(token, EMBED_FIT_DELAYS_AFTER_REVEAL);
             // Release dialog inline overrides so CSS transition fades it in.
             dialog.style.removeProperty('opacity');
             dialog.style.removeProperty('transform');
@@ -379,5 +394,11 @@ ${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
       event.preventDefault();
       openPreview(anchor);
     }, true);
+
+    window.addEventListener('resize', () => {
+      if (modal.hidden) return;
+      fitFrameHeightToContent(clickToken);
+      scheduleDelayedHeightFits(clickToken, [120, 280]);
+    });
   })();
 </script>
