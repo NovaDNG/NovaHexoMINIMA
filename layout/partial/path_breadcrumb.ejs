@@ -86,7 +86,7 @@ segments.forEach(function (seg, i) {
 });
 
 var visibleCrumbs = allCrumbs.slice(OMIT_LEVELS);
-var showBreadcrumb = visibleCrumbs.length >= 2;
+var showBreadcrumb = visibleCrumbs.length >= 2 && page.breadcrumb !== false;
 %>
 
 <% if (showBreadcrumb) { %>
