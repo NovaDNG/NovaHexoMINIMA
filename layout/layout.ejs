@@ -132,14 +132,23 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <%- css('css/normalize.css') %>
   <%- css('css/skeleton.css') %>
-  <%- css('css/font.css') %>
-  <%- css('css/typo.css') %>
   <%- css('css/custom.css') %>
-  <%- css('css/prism-dark.css') %>
-  <%- css('css/prism-line-numbers.css') %>
-  <!-- User css -->
+  <!-- Deferred non-critical CSS -->
+  <link rel="stylesheet" href="<%- url_for('css/font.css') %>" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="<%- url_for('css/font.css') %>"></noscript>
+  <link rel="stylesheet" href="<%- url_for('css/typo.css') %>" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="<%- url_for('css/typo.css') %>"></noscript>
+  <link rel="stylesheet" href="<%- url_for('css/prism-dark.css') %>" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="<%- url_for('css/prism-dark.css') %>"></noscript>
+  <link rel="stylesheet" href="<%- url_for('css/prism-line-numbers.css') %>" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="<%- url_for('css/prism-line-numbers.css') %>"></noscript>
   <% if (theme.usercss) { %>
-  <%- css(theme.usercss) %>
+  <link rel="stylesheet" href="<%- url_for(theme.usercss) %>" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="<%- url_for(theme.usercss) %>"></noscript>
+  <% } %>
+  <% if (page.yoishigure_index || page.tategaki) { %>
+  <link rel="stylesheet" href="<%- url_for('css/yoishigure.css') %>" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="<%- url_for('css/yoishigure.css') %>"></noscript>
   <% } %>
 
   <!-- Favicon
@@ -149,6 +158,9 @@
   <!-- Custom Theme Color Style
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <%- partial('partial/tcolor') %>
+
+  <script data-goatcounter="https://novadng.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 
 </head>
 
@@ -243,17 +255,6 @@
         toggleDetailsWithCloseAnim(target.parentElement);
       }, true);
     })();
-  </script>
-  <script src="<%- theme.nanobar %>"></script>
-  <script>
-    var options = {
-      classname: 'nanobar',
-      id: 'myNanobar'
-    };
-    var nanobar = new Nanobar(options);
-    nanobar.go(30);
-    nanobar.go(76);
-    nanobar.go(100);
   </script>
 
 </body>
