@@ -299,6 +299,50 @@ img.noshadow {
     }
 }
 
+/* ============================================================
+   EXIF LABELS
+   ============================================================ */
+
+/* Anchor: non-gallery image paragraphs need position:relative
+   so that .exif top:0 aligns with the image, not .container  */
+.exif-para { position: relative; }
+
+/* Base label — only injected when EXIF data is present */
+.exif {
+    position: absolute;
+    top: 0;
+    font-size: 0.7rem;
+    font-family: "Berkeley Mono", ui-monospace, monospace;
+    color: rgba(40, 30, 30, 0.42);
+    line-height: 1.7;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+}
+
+/* sup/sub for fractional shutter speeds (<1s) */
+.exif sup, .exif sub { font-size: 0.8em; line-height: 0; }
+
+/* Full-bleed image: EXIF to the right of the image.
+   Image right edge from <p> left = 50% + min(60%, 50vw)    */
+.exif-right {
+    left: calc(50% + min(60%, 50vw) + 0.75em);
+}
+
+/* Gallery paragraph: EXIF outside the paragraph edges.
+   Gallery <p> already has position:relative via existing CSS */
+.exif-gallery-left  { right: calc(100% + 0.75em); text-align: right; }
+.exif-gallery-right { left:  calc(100% + 0.75em); }
+
+/* Dark mode */
+html.darkmode .exif { color: rgba(200, 190, 185, 0.38); }
+
+/* Hide when viewport is too narrow for side space.
+   Full-bleed image = min(844.8px, 100vw); space appears only
+   when viewport > 844.8px; need ~70px gap → threshold 1060px  */
+@media (max-width: 1059px) {
+    .exif { display: none; }
+}
+
 /* Flickr embed wrapper */
 a[data-flickr-embed] { display: inline-block; line-height: 0; }
 
@@ -587,7 +631,8 @@ details.is-closing > :not(summary) {
     .giscus,
     iframe.giscus-frame,
     background,
-    .mode {
+    .mode,
+    .exif {
         display: none !important;
     }
     a, a > strong, a > b {
@@ -641,7 +686,6 @@ details.is-closing > :not(summary) {
     display: flex;
     gap: 1.87rem;
     align-items: flex-start; /* pin year label to top of the group */
-    margin-bottom: 3.33rem;
 }
 
 /* Vertical Japanese formal-numeral year label (弐零弐陸 style).
@@ -707,7 +751,7 @@ details.is-closing > :not(summary) {
         flex-direction: row;
         overflow-x: auto;
         align-items: flex-start; /* columns pin to top, not stretch to tallest */
-        gap: 2.5rem;
+        gap: 3.3rem;
         /* Full-bleed: escape the centered .container */
         width: 100vw;
         margin-left: calc(50% - 50vw);
@@ -716,7 +760,7 @@ details.is-closing > :not(summary) {
            content left offset (50vw minus half of 704px content width)
            on wide viewports, falling back to the container's own 32px
            padding on narrow ones. 352 = (768 - 2*32) / 2 */
-        padding-left: max(32px, calc(50vw - 352px));
+        padding-left: max(32px, calc(50vw - 412px));
         padding-right: 32px;
         box-sizing: border-box;
     }
@@ -727,6 +771,6 @@ details.is-closing > :not(summary) {
        natural content width when many years are shown at once. */
     .archive-scroll .archive-year-group {
         flex-shrink: 0;
-        margin: 0 16px 0 0;
+        margin: 0 16px 16px 0;
     }
 }
