@@ -33,9 +33,10 @@ function buildExifHTML({ aperture, shutter, iso, focal }) {
 }
 
 function getExifClass(alt) {
-  const idx = alt.indexOf('_gallery');
+  const decoded = alt.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const idx = decoded.indexOf('_gallery');
   if (idx === -1) return 'exif-right';
-  const suffix = alt.slice(idx);
+  const suffix = decoded.slice(idx);
   if (suffix.includes('<') && !suffix.includes('>')) return 'exif-gallery-left';
   return 'exif-gallery-right';
 }

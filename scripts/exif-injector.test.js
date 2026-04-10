@@ -90,6 +90,12 @@ test('getExifClass: empty alt → exif-right', () => {
 test('getExifClass: stray < in alt text before _gallery → gallery-right', () => {
   assert.equal(getExifClass('bus going <left _gallery >'), 'exif-gallery-right');
 });
+test('getExifClass: HTML-encoded &lt; → gallery-left', () => {
+  assert.equal(getExifClass('photo _gallery &lt;'), 'exif-gallery-left');
+});
+test('getExifClass: HTML-encoded &gt; → gallery-right', () => {
+  assert.equal(getExifClass('photo _gallery &gt;'), 'exif-gallery-right');
+});
 
 // ── processHtml ───────────────────────────────────────────
 test('processHtml: injects exif-right into full-bleed paragraph', () => {
