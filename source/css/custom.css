@@ -691,7 +691,13 @@ details.is-closing > :not(summary) {
         /* Full-bleed: escape the centered .container */
         width: 100vw;
         margin-left: calc(50% - 50vw);
-        padding-inline: 32px;
+        /* Align the first column with the container content edge.
+           max(32px, calc(50vw - 352px)) resolves to the container's
+           content left offset (50vw minus half of 704px content width)
+           on wide viewports, falling back to the container's own 32px
+           padding on narrow ones. 352 = (768 - 2*32) / 2 */
+        padding-left: max(32px, calc(50vw - 352px));
+        padding-right: 32px;
         box-sizing: border-box;
     }
 
@@ -701,6 +707,6 @@ details.is-closing > :not(summary) {
        natural content width when many years are shown at once. */
     .archive-scroll .archive-year-group {
         flex-shrink: 0;
-        margin-bottom: 0;
+        margin: 0 16px 0 0;
     }
 }
