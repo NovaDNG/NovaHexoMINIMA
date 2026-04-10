@@ -1,22 +1,64 @@
+<%
+/* ── Formal-numeral helper ──────────────────────────────────────────────
+   Converts each digit of the 4-digit year to a Japanese large-character
+   (大字) equivalent for the vertical year label.
+   Mapping: 0→零 1→壱 2→弐 3→参 4→肆 5→伍 6→陸 7→漆 8→捌 9→玖
+   This is a deliberate aesthetic choice, not an i18n/localisation step. */
+var FORMAL_DIGITS = ['零','壱','弐','参','肆','伍','陸','漆','捌','玖'];
+function toFormalYear(year) {
+  return String(year).split('').map(function(d) { return FORMAL_DIGITS[+d]; }).join('');
+}
+
+/* ── Post source ────────────────────────────────────────────────────────
+   site.posts (all posts) replaces page.posts (current paginated slice).
+   Pagination is intentionally removed: year-grouping requires the full
+   set so every year appears together on one page.
+   .sort('date', -1) → newest post first, newest year at top.
+   .toArray()        → plain Array needed for forEach. */
+var allPosts = site.posts.sort('date', -1).toArray();
+
+/* ── Year-grouping state ────────────────────────────────────────────────
+   currentYear tracks which year group is currently open so we can
+   close the previous group's divs before opening the next one. */
+var currentYear = null;
+%>
 
 <h3 class="mb-4">All Posts</h3>
 
-<% page.posts.each(function(post) { %>
-  <article>
-    <div class="row">
-      <div class="three columns left lit">
-        <p><%- full_date(post.date, 'll') %></p>
-      </div>
-      <div class="nine columns left mb-3">
-        <a href="<%- url_for(post.path) %>" class="">
-          <% if (post.title == "") { %>
-            no title
-          <% } else { %>
-            <%- post.title %>
-          <% } %>
-        </a>
-      </div>
+<% allPosts.forEach(function(post) { %>
+  <% var postYear = post.date.year(); %>
+
+  <%# Open a new year group whenever the year changes %>
+  <% if (postYear !== currentYear) { %>
+
+    <%# Close the previous group (skip on the very first iteration) %>
+    <% if (currentYear !== null) { %>
+      </div><%# /.archive-post-list %>
+    </div><%# /.archive-year-group %>
+    <% } %>
+
+    <% currentYear = postYear; %>
+
+    <%# Flex row: vertical year label (left) + post list (right) %>
+    <div class="archive-year-group">
+      <%# aria-label exposes the numeric year to screen readers because
+          the rendered text is kanji numerals, not ASCII digits. %>
+      <div class="archive-year-label" aria-label="<%= postYear %>"><%- toFormalYear(postYear) %></div>
+      <div class="archive-post-list">
+  <% } %>
+
+    <%# Post entry: MM-DD date stacked above the linked title %>
+    <div class="archive-post-entry">
+      <div class="archive-post-date"><%- date(post.date, 'MM-DD') %></div>
+      <a href="<%- url_for(post.path) %>">
+        <% if (!post.title) { %>no title<% } else { %><%- post.title %><% } %>
+      </a>
     </div>
-  </article>
-<% }) %>
-<%- partial('partial/pagination', {type: 'page'}) %>
+
+<% }); /* end allPosts.forEach */ %>
+
+<%# Close the last open year group %>
+<% if (currentYear !== null) { %>
+      </div><%# /.archive-post-list %>
+    </div><%# /.archive-year-group %>
+<% } %>
