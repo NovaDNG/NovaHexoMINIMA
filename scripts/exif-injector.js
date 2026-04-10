@@ -17,7 +17,7 @@ function formatShutterSpeed(raw) {
 
 function formatFocalLength(raw) {
   if (raw == null) return null;
-  return raw.replace(/\.0(\s)/, '$1');
+  return String(raw).replace(/\.0(\s|$)/, '$1');
 }
 
 function buildExifHTML({ aperture, shutter, iso, focal }) {
@@ -33,9 +33,10 @@ function buildExifHTML({ aperture, shutter, iso, focal }) {
 }
 
 function getExifClass(alt) {
-  if (!alt.includes('_gallery')) return 'exif-right';
-  // '>' means right (default), '<' means left. If both appear, '>' wins.
-  if (alt.includes('<') && !alt.includes('>')) return 'exif-gallery-left';
+  const idx = alt.indexOf('_gallery');
+  if (idx === -1) return 'exif-right';
+  const suffix = alt.slice(idx);
+  if (suffix.includes('<') && !suffix.includes('>')) return 'exif-gallery-left';
   return 'exif-gallery-right';
 }
 

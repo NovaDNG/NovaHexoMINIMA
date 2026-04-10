@@ -47,6 +47,9 @@ test('formatFocalLength: keeps decimal', () => {
 test('formatFocalLength: null', () => {
   assert.equal(formatFocalLength(null), null);
 });
+test('formatFocalLength: numeric input', () => {
+  assert.equal(formatFocalLength(50), '50');
+});
 
 // ── buildExifHTML ─────────────────────────────────────────
 test('buildExifHTML: all four fields', () => {
@@ -59,6 +62,10 @@ test('buildExifHTML: missing iso', () => {
 });
 test('buildExifHTML: all null returns null', () => {
   assert.equal(buildExifHTML({ aperture: null, shutter: null, iso: null, focal: null }), null);
+});
+test('buildExifHTML: numeric iso', () => {
+  const html = buildExifHTML({ aperture: 'ƒ/1.8', shutter: '2s', iso: 100, focal: '50 mm' });
+  assert.equal(html, 'ƒ/1.8<br>2s<br>ISO 100<br>50 mm');
 });
 
 // ── getExifClass ──────────────────────────────────────────
@@ -79,6 +86,9 @@ test('getExifClass: no gallery flag → exif-right', () => {
 });
 test('getExifClass: empty alt → exif-right', () => {
   assert.equal(getExifClass(''), 'exif-right');
+});
+test('getExifClass: stray < in alt text before _gallery → gallery-right', () => {
+  assert.equal(getExifClass('bus going <left _gallery >'), 'exif-gallery-right');
 });
 
 // ── processHtml ───────────────────────────────────────────
