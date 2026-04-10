@@ -126,10 +126,15 @@ if (typeof hexo !== 'undefined') {
    * - Relative src ('photo.avif') → post asset dir (source/_posts/<slug>/)
    */
   function resolveSrc(src, data) {
+    const fs = require('fs');
     if (src.startsWith('/')) {
-      return path.join(hexo.source_dir, src.slice(1));
+      const directPath = path.join(hexo.source_dir, src.slice(1));
+      if (fs.existsSync(directPath)) return directPath;
+      // Post-asset: Hexo rewrote 'file.avif' → '/YEAR-MO/PostSlug/file.avif'
+      // The source file lives at _posts/<slug>/<filename>
+      const slug = path.basename(data.source, path.extname(data.source));
+      return path.join(hexo.source_dir, '_posts', slug, path.basename(src));
     }
-    // post_asset_folder: true — assets live alongside the .md file
     const slug = path.basename(data.source, path.extname(data.source));
     return path.join(hexo.source_dir, '_posts', slug, src);
   }
