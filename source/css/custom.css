@@ -7,7 +7,6 @@
     --shadow-default: 0 6px 12px rgba(80, 0, 0, 0.16);
     /* Single source of truth — keep in sync with DETAILS_ANIM_MS reads in layout.ejs and tategaki_script.ejs */
     --details-anim-ms: 200;
-    text-spacing-trim: space-first;
 }
 
 html {
@@ -165,6 +164,13 @@ html.darkmode body {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 2.33rem;
+}
+
+/* Constrain the hover-highlight block to font-size height.
+   Without this, the background box inherits body line-height (1.67),
+   making the block extend far below the visible glyphs. */
+.nine.columns.nav a:not(.icon) {
+    line-height: 1;
 }
 
 /* Nav & footer text: switch to monospace at wider viewports */
@@ -563,6 +569,11 @@ details.is-closing > :not(summary) {
     a, a > strong, a > b {
         background-image: none !important;
     }
+    a.color-link.color-link--gradient {
+        -webkit-text-fill-color: currentColor !important;
+        background-clip: border-box !important;
+        -webkit-background-clip: border-box !important;
+    }
     a:not(.headerlink)::after {
         content: " >" attr(href) " ";
     }
@@ -593,4 +604,58 @@ details.is-closing > :not(summary) {
         position: static !important;
         width: 100% !important;
     }
+}
+
+
+/* ── Archive: year-grouped layout ──────────────────────────────────────
+   Replaces the old flat list. Each .archive-year-group is a flex row:
+   .archive-year-label (vertical kanji numeral, left) +
+   .archive-post-list  (linear post entries, right).
+   Pagination has been removed; all posts appear on one page.          */
+
+.archive-year-group {
+    display: flex;
+    gap: 1.4rem;
+    align-items: flex-start; /* pin year label to top of the group */
+    margin-bottom: 2.8rem;
+}
+
+/* Vertical Japanese formal-numeral year label (弐零弐陸 style).
+   text-orientation: upright keeps each kanji character upright (not
+   rotated), which is correct for ideographic glyphs in vertical flow. */
+.archive-year-label {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-size: 1.05em;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    /* Match the muted color treatment used by .lit elsewhere */
+    color: color-mix(in srgb, currentColor 56%, transparent);
+    flex-shrink: 0;
+    /* Slight top nudge to optically align with the first entry's date */
+    padding-top: 0.1rem;
+}
+
+.archive-post-list {
+    flex: 1;
+}
+
+/* Spacing between entries within a year group */
+.archive-post-entry {
+    margin-bottom: 1.1rem;
+}
+
+.archive-post-entry:last-child {
+    margin-bottom: 0;
+}
+
+/* MM-DD date shown above the post title.
+   Uses Berkeley Mono to match the existing .lit date style. */
+.archive-post-date {
+    font-size: 0.8em;
+    font-family: "Berkeley Mono", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    color: color-mix(in srgb, currentColor 40%, transparent);
+    margin-bottom: 0.12rem;
+    line-height: 1.1;
 }
