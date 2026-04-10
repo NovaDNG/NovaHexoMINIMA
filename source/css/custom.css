@@ -311,13 +311,14 @@ img.noshadow {
 .exif {
     position: absolute;
     top: 0;
-    font-size: 0.7rem;
-    font-family: "Berkeley Mono", ui-monospace, monospace;
-    color: rgba(40, 30, 30, 0.42);
-    line-height: 1.7;
+    font-size: 1.3rem;
+    font-family: "Berkeley Mono", "iA Writer Mono", ui-monospace, monospace;
+    color: rgba(40, 30, 30, 0.56);
+    line-height: 1.66;
     white-space: nowrap;
     letter-spacing: 0.03em;
     pointer-events: none;
+    text-transform: none;
 }
 
 /* sup/sub for fractional shutter speeds (<1s) */
