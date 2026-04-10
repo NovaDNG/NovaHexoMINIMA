@@ -13,9 +13,9 @@ function toFormalYear(year) {
    site.posts (all posts) replaces page.posts (current paginated slice).
    Pagination is intentionally removed: year-grouping requires the full
    set so every year appears together on one page.
-   .sort('date', -1) → newest post first, newest year at top.
-   .toArray()        → plain Array needed for forEach. */
-var allPosts = site.posts.sort('date', -1).toArray();
+   .sort('date', 'desc') → newest post first, newest year at top.
+   .toArray()            → plain Array needed for forEach. */
+var allPosts = site.posts.sort('date', 'desc').toArray();
 
 /* ── Year-grouping state ────────────────────────────────────────────────
    currentYear tracks which year group is currently open so we can
