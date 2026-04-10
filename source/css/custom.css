@@ -95,6 +95,10 @@ html.darkmode body {
     margin-top: 0px;
 }
 
+.mt-1 {
+    margin-top: 1.33rem;
+}
+
 .mt-2 {
     margin-top: 5rem;
     width: 100%; /* ensures block stretches full width inside floated/flex parents */
@@ -615,9 +619,9 @@ details.is-closing > :not(summary) {
 
 .archive-year-group {
     display: flex;
-    gap: 1.4rem;
+    gap: 1.87rem;
     align-items: flex-start; /* pin year label to top of the group */
-    margin-bottom: 2.8rem;
+    margin-bottom: 3.33rem;
 }
 
 /* Vertical Japanese formal-numeral year label (弐零弐陸 style).
@@ -626,14 +630,15 @@ details.is-closing > :not(summary) {
 .archive-year-label {
     writing-mode: vertical-rl;
     text-orientation: upright;
-    font-size: 1.05em;
-    font-weight: bold;
-    letter-spacing: 0.1em;
+    font-family: "Toppan Bunkyu Midashi Mincho", "Ten Mincho", "HYXuanSong", "FZYouSongJ GBK", "Source Han Serif", "Noto Serif TC", -apple-system, BlinkMacSystemFont, serif;
+    font-size: 2.33em;
+    font-weight: 900;
+    letter-spacing: 0.15em;
     /* Match the muted color treatment used by .lit elsewhere */
     color: color-mix(in srgb, currentColor 56%, transparent);
     flex-shrink: 0;
-    /* Slight top nudge to optically align with the first entry's date */
-    padding-top: 0.1rem;
+    padding: 2px 0 0 0;
+    line-height: 1;
 }
 
 .archive-post-list {
@@ -658,4 +663,44 @@ details.is-closing > :not(summary) {
     color: color-mix(in srgb, currentColor 40%, transparent);
     margin-bottom: 0.12rem;
     line-height: 1.1;
+}
+
+/* ── Archive: landscape horizontal scroll columns ───────────────────────
+   On landscape screens (width > height) the .archive-scroll wrapper
+   becomes a horizontal flex container. Each .archive-year-group is a
+   column; years flow newest-left to oldest-right.
+
+   Orientation query is used instead of a fixed min-width breakpoint so
+   the layout follows device posture (rotated phone → columns,
+   upright tablet → stacked) rather than an arbitrary pixel threshold.
+
+   Full-bleed technique:
+     width: 100vw + margin-left: calc(50% - 50vw)
+   breaks the element out of the centered .container (max-width: 768px)
+   so the scroll stage spans edge-to-edge of the viewport.
+   padding-inline: 32px restores the container's own side padding so
+   the first column stays optically aligned with surrounding page content.
+   box-sizing: border-box ensures padding doesn't add to the 100vw width. */
+@media (orientation: landscape) {
+    .archive-scroll {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        align-items: flex-start; /* columns pin to top, not stretch to tallest */
+        gap: 2.5rem;
+        /* Full-bleed: escape the centered .container */
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        padding-inline: 32px;
+        box-sizing: border-box;
+    }
+
+    /* Remove the vertical gap used in the stacked layout — horizontal
+       spacing between columns is handled by the parent gap above.
+       flex-shrink: 0 prevents columns from compressing below their
+       natural content width when many years are shown at once. */
+    .archive-scroll .archive-year-group {
+        flex-shrink: 0;
+        margin-bottom: 0;
+    }
 }
