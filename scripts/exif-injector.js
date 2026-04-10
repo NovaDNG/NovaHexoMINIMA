@@ -2,7 +2,7 @@
 
 function formatAperture(fnumber) {
   if (fnumber == null) return null;
-  return `ƒ/${fnumber}`;
+  return `f/${fnumber}`;
 }
 
 function formatShutterSpeed(raw) {

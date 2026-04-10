@@ -14,10 +14,10 @@ const {
 
 // ── formatAperture ────────────────────────────────────────
 test('formatAperture: integer', () => {
-  assert.equal(formatAperture(4), 'ƒ/4');
+  assert.equal(formatAperture(4), 'f/4');
 });
 test('formatAperture: decimal', () => {
-  assert.equal(formatAperture(1.4), 'ƒ/1.4');
+  assert.equal(formatAperture(1.4), 'f/1.4');
 });
 test('formatAperture: null', () => {
   assert.equal(formatAperture(null), null);
@@ -53,19 +53,19 @@ test('formatFocalLength: numeric input', () => {
 
 // ── buildExifHTML ─────────────────────────────────────────
 test('buildExifHTML: all four fields', () => {
-  const html = buildExifHTML({ aperture: 'ƒ/1.4', shutter: '<sup>1</sup><sub>500</sub>s', iso: 'ISO 400', focal: '50 mm' });
-  assert.equal(html, 'ƒ/1.4<br><sup>1</sup><sub>500</sub>s<br>ISO 400<br>50 mm');
+  const html = buildExifHTML({ aperture: 'f/1.4', shutter: '<sup>1</sup><sub>500</sub>s', iso: 'ISO 400', focal: '50 mm' });
+  assert.equal(html, 'f/1.4<br><sup>1</sup><sub>500</sub>s<br>ISO 400<br>50 mm');
 });
 test('buildExifHTML: missing iso', () => {
-  const html = buildExifHTML({ aperture: 'ƒ/2.8', shutter: '2s', iso: null, focal: '90 mm' });
-  assert.equal(html, 'ƒ/2.8<br>2s<br>90 mm');
+  const html = buildExifHTML({ aperture: 'f/2.8', shutter: '2s', iso: null, focal: '90 mm' });
+  assert.equal(html, 'f/2.8<br>2s<br>90 mm');
 });
 test('buildExifHTML: all null returns null', () => {
   assert.equal(buildExifHTML({ aperture: null, shutter: null, iso: null, focal: null }), null);
 });
 test('buildExifHTML: numeric iso', () => {
-  const html = buildExifHTML({ aperture: 'ƒ/1.8', shutter: '2s', iso: 100, focal: '50 mm' });
-  assert.equal(html, 'ƒ/1.8<br>2s<br>ISO 100<br>50 mm');
+  const html = buildExifHTML({ aperture: 'f/1.8', shutter: '2s', iso: 100, focal: '50 mm' });
+  assert.equal(html, 'f/1.8<br>2s<br>ISO 100<br>50 mm');
 });
 
 // ── getExifClass ──────────────────────────────────────────
@@ -100,11 +100,11 @@ test('getExifClass: HTML-encoded &gt; → gallery-right', () => {
 // ── processHtml ───────────────────────────────────────────
 test('processHtml: injects exif-right into full-bleed paragraph', () => {
   const input = '<p><img src="a.avif" alt="photo"></p>';
-  const exifMap = { 'a.avif': 'ƒ/2.8<br><sup>1</sup><sub>500</sub>s<br>ISO 100<br>50 mm' };
+  const exifMap = { 'a.avif': 'f/2.8<br><sup>1</sup><sub>500</sub>s<br>ISO 100<br>50 mm' };
   const result = processHtml(input, exifMap);
   assert.ok(result.includes('class="exif-para"'), 'adds exif-para class');
   assert.ok(result.includes('<small class="exif exif-right">'), 'injects exif-right label');
-  assert.ok(result.includes('ƒ/2.8'), 'includes exif content');
+  assert.ok(result.includes('f/2.8'), 'includes exif content');
 });
 
 test('processHtml: no injection when exifMap has no entry for src', () => {
@@ -114,14 +114,14 @@ test('processHtml: no injection when exifMap has no entry for src', () => {
 });
 
 test('processHtml: data-exif override used verbatim', () => {
-  const input = '<p><img src="a.avif" alt="photo" data-exif="ƒ/1.4<br>custom"></p>';
+  const input = '<p><img src="a.avif" alt="photo" data-exif="f/1.4<br>custom"></p>';
   const result = processHtml(input, {});
-  assert.ok(result.includes('<small class="exif exif-right">ƒ/1.4<br>custom</small>'));
+  assert.ok(result.includes('<small class="exif exif-right">f/1.4<br>custom</small>'));
 });
 
 test('processHtml: data-exif="none" suppresses injection', () => {
   const input = '<p><img src="a.avif" alt="photo" data-exif="none"></p>';
-  const exifMap = { 'a.avif': 'ƒ/2.8<br>...' };
+  const exifMap = { 'a.avif': 'f/2.8<br>...' };
   const result = processHtml(input, exifMap);
   assert.ok(!result.includes('<small'), 'no small injected');
 });
@@ -129,8 +129,8 @@ test('processHtml: data-exif="none" suppresses injection', () => {
 test('processHtml: gallery paragraph gets gallery classes', () => {
   const input = '<p><img src="a.avif" alt="photo _gallery <"><img src="b.avif" alt="photo _gallery"></p>';
   const exifMap = {
-    'a.avif': 'ƒ/1.8<br><sup>1</sup><sub>400</sub>s<br>ISO 100<br>50 mm',
-    'b.avif': 'ƒ/2.0<br><sup>1</sup><sub>60</sub>s<br>ISO 400<br>65 mm',
+    'a.avif': 'f/1.8<br><sup>1</sup><sub>400</sub>s<br>ISO 100<br>50 mm',
+    'b.avif': 'f/2.0<br><sup>1</sup><sub>60</sub>s<br>ISO 400<br>65 mm',
   };
   const result = processHtml(input, exifMap);
   assert.ok(result.includes('exif-gallery-left'), 'left image gets gallery-left');
@@ -140,7 +140,7 @@ test('processHtml: gallery paragraph gets gallery classes', () => {
 
 test('processHtml: paragraph with text + image is skipped', () => {
   const input = '<p>Some text <img src="a.avif" alt="photo"> more text</p>';
-  const exifMap = { 'a.avif': 'ƒ/2.8<br>...' };
+  const exifMap = { 'a.avif': 'f/2.8<br>...' };
   const result = processHtml(input, exifMap);
   assert.equal(result, input);
 });
