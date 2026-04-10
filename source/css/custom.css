@@ -317,6 +317,7 @@ img.noshadow {
     line-height: 1.7;
     white-space: nowrap;
     letter-spacing: 0.03em;
+    pointer-events: none;
 }
 
 /* sup/sub for fractional shutter speeds (<1s) */
