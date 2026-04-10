@@ -108,3 +108,81 @@ module.exports = {
   isImageOnlyParagraph,
   getAttr,
 };
+
+// ── Hexo filter (only loaded when running inside Hexo) ────────────────────
+// Guard lets the file be required in tests without crashing on missing `hexo`
+if (typeof hexo !== 'undefined') {
+  const path = require('path');
+  const { ExifTool } = require('exiftool-vendored');
+
+  const et = new ExifTool({ taskTimeoutMillis: 5000 });
+  const exifCache = new Map();  // absolute file path → exif innerHTML string | null
+
+  hexo.on('exit', () => et.end());
+
+  /**
+   * Resolve an img src to an absolute filesystem path.
+   * - Absolute src ('/Frames/…')  → hexo.source_dir + src (strip leading /)
+   * - Relative src ('photo.avif') → post asset dir (source/_posts/<slug>/)
+   */
+  function resolveSrc(src, data) {
+    if (src.startsWith('/')) {
+      return path.join(hexo.source_dir, src.slice(1));
+    }
+    // post_asset_folder: true — assets live alongside the .md file
+    const slug = path.basename(data.source, path.extname(data.source));
+    return path.join(hexo.source_dir, '_posts', slug, src);
+  }
+
+  /**
+   * Read EXIF for one image file, with in-memory caching.
+   * Returns formatted innerHTML string or null.
+   */
+  async function readExif(absPath) {
+    if (exifCache.has(absPath)) return exifCache.get(absPath);
+
+    let result = null;
+    try {
+      const tags = await et.read(absPath);
+      const html = buildExifHTML({
+        aperture: formatAperture(tags.FNumber),
+        shutter:  formatShutterSpeed(tags.ExposureTime),
+        iso:      tags.ISO ?? null,
+        focal:    formatFocalLength(tags.FocalLength ?? null),
+      });
+      result = html;
+    } catch {
+      // File not found, unreadable, or no EXIF — leave as null
+    }
+
+    exifCache.set(absPath, result);
+    return result;
+  }
+
+  hexo.extend.filter.register('after_post_render', async function (data) {
+    // Collect unique img srcs needing file reads (skip manual overrides and icons)
+    const srcSet = new Set();
+    const imgRegex = /<img((?:\s+[\w-]+(?:="[^"]*")?)*)\s*\/?>/g;
+    let m;
+    while ((m = imgRegex.exec(data.content)) !== null) {
+      const attrs = m[1];
+      const dataExif = getAttr(attrs, 'data-exif');
+      if (dataExif === 'none' || dataExif) continue;  // manual override — no file read needed
+      const src = getAttr(attrs, 'src');
+      const alt = getAttr(attrs, 'alt');
+      if (!src || alt.includes('icon')) continue;
+      srcSet.add(src);
+    }
+
+    // Read EXIF for all srcs in parallel
+    const exifMap = {};
+    await Promise.all([...srcSet].map(async (src) => {
+      const absPath = resolveSrc(src, data);
+      const html = await readExif(absPath);
+      if (html) exifMap[src] = html;
+    }));
+
+    data.content = processHtml(data.content, exifMap);
+    return data;
+  });
+}
