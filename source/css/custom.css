@@ -21,6 +21,10 @@ html.darkmode {
 }
 
 body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100dvh;
     overflow-y: scroll;
     overflow-x: hidden;
     transition: color 0.2s ease-in-out;
@@ -175,6 +179,22 @@ html.darkmode body {
    making the block extend far below the visible glyphs. */
 .nine.columns.nav a:not(.icon) {
     line-height: 1;
+}
+
+/* Keep the current-page nav link in the same visual state as hover */
+.nine.columns.nav a.is-active:not(.icon),
+.nine.columns.nav a[aria-current="page"]:not(.icon) {
+    background-position: 0 100%;
+    color: #e9e6e2;
+    border-radius: 2px;
+}
+
+.nine.columns.nav a.is-active:not(.icon) > strong,
+.nine.columns.nav a.is-active:not(.icon) > b,
+.nine.columns.nav a[aria-current="page"]:not(.icon) > strong,
+.nine.columns.nav a[aria-current="page"]:not(.icon) > b {
+    background-position: inherit;
+    border-radius: 2px;
 }
 
 /* Nav & footer text: switch to monospace at wider viewports */
