@@ -18,7 +18,7 @@ menu:
   RSS: /atom.xml
 
 #index/main page max show posts (in number)
-#max_post: 460
+max_post: 13
 
 # Colors use hex color without #
 # Theme color
