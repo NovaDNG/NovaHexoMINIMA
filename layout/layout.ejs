@@ -25,19 +25,31 @@
   } else if (is_tag()){
     title = 'Posts Related to ' + page.tag;
   }
+
+  // Compute a clean description: respect explicit frontmatter, otherwise
+  // strip <style>/<script>/<small class="exif"> blocks (including their text
+  // content) before calling strip_html so that inline CSS and EXIF data don't
+  // bleed into OG/meta previews.
+  var pageDescription = (function () {
+    if (page.description) return page.description;
+    if (!page.content) return config.description || '';
+    var cleaned = page.content
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<small[^>]*>[\s\S]*?<\/small>/gi, '');
+    return strip_html(cleaned)
+      .replace(/\n/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/^\s+|\s+$/g, '')
+      .substring(0, 150);
+  })();
   %>
   <title><%= title %></title>
   <% if (config.sitemap) { %>
   <link rel="sitemap" href="<%-config.url + config.sitemap.path %>" />
   <% } %>
   <link rel="canonical" href="<%= url.replace(/index\.html$/, '').replace(/index\.html$/, '') %>">
-  <% if (is_page()){ %>
-  <meta name="description" content="<%= page.description %>">
-  <% } else if (page.content){ %>
-  <meta name="description" content="<%= strip_html(page.content).replace(/\n/g, " ").replace(/^\s*/, '').replace(/\s*$/, '').substring(0, 150) %>">
-  <% } else { %>
-  <meta name="description" content="<%= config.description %>">
-  <% } %>
+  <meta name="description" content="<%= pageDescription %>">
   <% if (config.keywords) { %>
   <meta name="keywords" content="<%= config.keywords %>">
   <% } %>
@@ -50,24 +62,12 @@
   <meta property="og:site_name" content="<%= config.title %>" />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="<%= title %>" />
-  <% if (is_page()){ %>
-  <meta property="og:description" content="<%= page.description %>">
-  <% } else if (page.content){ %>
-  <meta property="og:description" content="<%= strip_html(page.content).replace(/\n/g, " ").replace(/^\s*/, '').replace(/\s*$/, '').substring(0, 150) %>">
-  <% } else { %>
-  <meta property="og:description" content="<%= config.description %>">
-  <% } %>
+  <meta property="og:description" content="<%= pageDescription %>">
   <meta property="og:url" content="<%= url.replace(/index\.html$/, '').replace(/index\.html$/, '') %>" />
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<%= title %>">
-  <% if (is_page()){ %>
-  <meta name="twitter:description" content="<%= page.description %>">
-  <% } else if (page.content){ %>
-  <meta name="twitter:description" content="<%= strip_html(page.content).replace(/\n/g, " ").replace(/^\s*/, '').replace(/\s*$/, '').substring(0, 150) %>">
-  <% } else { %>
-  <meta name="twitter:description" content="<%= config.description %>">
-  <% } %>
+  <meta name="twitter:description" content="<%= pageDescription %>">
   <% if (is_post() || is_page()) { %>
   <meta name="twitter:image" content="<%-config.url + page.thumbnail %>">
   <% } else { %>
@@ -215,7 +215,7 @@
         .replace(/^\/+|\/+$/g, '');
     }
 
-    var isPageOrPost = page.layout === 'post' || page.layout === 'page';
+    var isPageOrPost = page.layout === 'post' || page.layout === 'page' || page.layout === 'horizoncolumns';
     var hasPageBreadcrumb = false;
 
     if (page.layout === 'page' && page.breadcrumb !== false) {

@@ -1,0 +1,92 @@
+<%
+/* ─── horizoncolumns.ejs ───────────────────────────────────────────────────
+   Generic horizontal-scroll column layout.
+
+   Column markers (Markdown → rendered HTML):
+     <h3>…</h3>  →  labeled column  (### heading in source)
+     <hr>         →  bare column     (*** at top level in source)
+
+   <details> blocks are protected before splitting so any *** inside them
+   does not create a spurious column break.                                 */
+
+var html = page.content;
+
+/* ── 1. Protect <details> blocks ──────────────────────────────────────── */
+var detailsMap = Object.create(null);
+var detailsIdx = 0;
+html = html.replace(/<details[\s\S]*?<\/details>/gi, function(match) {
+  var token = '\x00D' + detailsIdx + '\x00';
+  detailsMap[token] = match;
+  detailsIdx++;
+  return token;
+});
+
+/* ── 2. Separate preamble from column content ─────────────────────────── */
+var preamble = '';
+var body = html;
+var firstH3 = html.search(/<h3[\s>]/i);
+if (firstH3 > 0) {
+  preamble = html.slice(0, firstH3);
+  body = html.slice(firstH3);
+} else if (firstH3 === -1) {
+  /* No H3 — entire content is preamble, no columns */
+  preamble = html;
+  body = '';
+}
+
+/* ── 3. Split body into chunks at each <h3> or <hr> boundary ─────────── */
+/* Lookahead split: each chunk starts with its own delimiter (<h3> or <hr>).
+   The first element may be an empty string if body starts right at a <h3>. */
+var rawChunks = body.length ? body.split(/(?=<h3[\s>])|(?=<hr[\s\/>])|(?=<hr>)/i) : [];
+
+/* ── 4. Classify chunks and restore <details> placeholders ───────────── */
+function restoreDetails(str) {
+  return str.replace(/\x00D\d+\x00/g, function(tok) {
+    return detailsMap[tok] !== undefined ? detailsMap[tok] : tok;
+  });
+}
+
+var columns = [];
+rawChunks.forEach(function(chunk) {
+  if (!chunk.trim()) return;
+  var h3Match = chunk.match(/^<h3[^>]*>([\s\S]*?)<\/h3>/i);
+  if (h3Match) {
+    /* Labeled column: extract label text, body is everything after </h3> */
+    columns.push({
+      type: 'labeled',
+      label: h3Match[1],
+      body: restoreDetails(chunk.slice(h3Match[0].length))
+    });
+  } else {
+    /* Bare column: strip the leading <hr> tag, rest is body */
+    var hrMatch = chunk.match(/^<hr[^>]*\/?>/i);
+    columns.push({
+      type: 'bare',
+      body: restoreDetails(chunk.slice(hrMatch ? hrMatch[0].length : 0))
+    });
+  }
+});
+%>
+
+<h2 class="mt-3"><%- page.title %></h2>
+
+<%- restoreDetails(preamble) %>
+
+<% if (columns.length) { %>
+<div class="hcol-scroll">
+<% columns.forEach(function(col) { %>
+  <% if (col.type === 'labeled') { %>
+  <div class="hcol-group">
+    <div class="hcol-label"><%- col.label %></div>
+    <div class="hcol-body"><%- col.body %></div>
+  </div>
+  <% } else { %>
+  <div class="hcol-group hcol-group--bare">
+    <div class="hcol-body"><%- col.body %></div>
+  </div>
+  <% } %>
+<% }); %>
+</div>
+<% } %>
+
+<%- partial('partial/giscus') %>

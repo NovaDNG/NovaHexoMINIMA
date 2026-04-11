@@ -59,6 +59,9 @@ function processHtml(html, exifMap) {
     if (!isImageOnlyParagraph(content)) return match;
 
     const isGallery = content.includes('_gallery');
+    // Detect layout markers in any alt attribute before stripping them.
+    const hasMm = /\balt="[^"]*\b_mm\b/.test(content);
+    const hasMt = /\balt="[^"]*\b_mt\b/.test(content);
     const smalls = [];
 
     // Use a regex that handles attribute values containing '>' (e.g. data-exif="...<br>...")
@@ -83,19 +86,29 @@ function processHtml(html, exifMap) {
       }
     });
 
-    if (smalls.length === 0) return match;
+    // Skip paragraphs with no EXIF and no layout markers.
+    if (smalls.length === 0 && !hasMm && !hasMt) return match;
 
     // Add exif-para class to non-gallery paragraphs for position:relative
     let newPAttrs = pAttrs;
-    if (!isGallery) {
-      if (/\bclass="/.test(pAttrs)) {
-        newPAttrs = pAttrs.replace(/\bclass="/, 'class="exif-para ');
+    if (smalls.length > 0 && !isGallery) {
+      if (/\bclass="/.test(newPAttrs)) {
+        newPAttrs = newPAttrs.replace(/\bclass="/, 'class="exif-para ');
       } else {
-        newPAttrs = (pAttrs + ' class="exif-para"').trimStart();
+        newPAttrs = (newPAttrs + ' class="exif-para"').trimStart();
       }
     }
 
-    return `<p${newPAttrs ? ' ' + newPAttrs.trim() : ''}>${content}${smalls.join('')}</p>`;
+    // Convert layout markers to data attributes on <p> so CSS can target
+    // p[data-mm] / p[data-mt] after the alt text has been cleaned.
+    if (hasMm) newPAttrs = (newPAttrs + ' data-mm').trimStart();
+    if (hasMt) newPAttrs = (newPAttrs + ' data-mt').trimStart();
+
+    // Strip markers from alt text (accessibility + clean HTML output).
+    const cleanedContent = content
+      .replace(/(\balt="[^"]*?)\s*\b_mm\b\s*/g, '$1')
+      .replace(/(\balt="[^"]*?)\s*\b_mt\b\s*/g, '$1');
+    return `<p${newPAttrs ? ' ' + newPAttrs.trim() : ''}>${cleanedContent}${smalls.join('')}</p>`;
   });
 }
 
@@ -114,12 +127,37 @@ module.exports = {
 // Guard lets the file be required in tests without crashing on missing `hexo`
 if (typeof hexo !== 'undefined' && !process.argv.includes('server')) {
   const path = require('path');
+  const fs = require('fs');
   const { ExifTool } = require('exiftool-vendored');
 
   const et = new ExifTool({ taskTimeoutMillis: 5000 });
-  const exifCache = new Map();  // absolute file path → exif innerHTML string | null
 
-  hexo.on('exit', () => et.end());
+  // ── Persistent disk cache ─────────────────────────────────────────────────
+  // Keyed by absolute path; each entry stores mtime+size for invalidation and
+  // the pre-formatted EXIF HTML (or null when the file has no usable EXIF).
+  // Lives at .cache/exif-cache.json (already gitignored via .cache/).
+  const CACHE_FILE = path.join(hexo.base_dir, '.cache', 'exif-cache.json');
+
+  let diskCache = {};
+  try {
+    diskCache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+  } catch {
+    // First run or file missing/corrupt — start fresh.
+  }
+
+  // In-memory map for the current build (avoids redundant stat calls when the
+  // same image appears in multiple posts during one hexo generate run).
+  const exifCache = new Map();
+
+  hexo.on('exit', () => {
+    et.end();
+    try {
+      fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
+      fs.writeFileSync(CACHE_FILE, JSON.stringify(diskCache, null, 2));
+    } catch {
+      // Non-fatal — worst case the next build re-reads everything.
+    }
+  });
 
   /**
    * Resolve an img src to an absolute filesystem path.
@@ -127,7 +165,6 @@ if (typeof hexo !== 'undefined' && !process.argv.includes('server')) {
    * - Relative src ('photo.avif') → post asset dir (source/_posts/<slug>/)
    */
   function resolveSrc(src, data) {
-    const fs = require('fs');
     if (src.startsWith('/')) {
       const directPath = path.join(hexo.source_dir, src.slice(1));
       if (fs.existsSync(directPath)) return directPath;
@@ -141,26 +178,44 @@ if (typeof hexo !== 'undefined' && !process.argv.includes('server')) {
   }
 
   /**
-   * Read EXIF for one image file, with in-memory caching.
-   * Returns formatted innerHTML string or null.
+   * Read EXIF for one image file.
+   * Returns the cached innerHTML string when the file is unchanged (same mtime
+   * and size), otherwise calls ExifTool and updates the cache.
    */
   async function readExif(absPath) {
     if (exifCache.has(absPath)) return exifCache.get(absPath);
 
+    // Stat the file first — if it doesn't exist, bail out early.
+    let stat;
+    try {
+      stat = fs.statSync(absPath);
+    } catch {
+      exifCache.set(absPath, null);
+      return null;
+    }
+
+    const cached = diskCache[absPath];
+    if (cached && cached.mtime === stat.mtimeMs && cached.size === stat.size) {
+      // File unchanged — reuse stored value without invoking ExifTool.
+      exifCache.set(absPath, cached.exifHTML);
+      return cached.exifHTML;
+    }
+
+    // File is new or modified — read EXIF from disk.
     let result = null;
     try {
       const tags = await et.read(absPath);
-      const html = buildExifHTML({
+      result = buildExifHTML({
         aperture: formatAperture(tags.FNumber),
         shutter:  formatShutterSpeed(tags.ExposureTime),
         iso:      tags.ISO ?? null,
         focal:    formatFocalLength(tags.FocalLength ?? null),
       });
-      result = html;
     } catch {
-      // File not found, unreadable, or no EXIF — leave as null
+      // File unreadable or no EXIF — leave as null.
     }
 
+    diskCache[absPath] = { mtime: stat.mtimeMs, size: stat.size, exifHTML: result };
     exifCache.set(absPath, result);
     return result;
   }

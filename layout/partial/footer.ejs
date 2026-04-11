@@ -62,7 +62,7 @@
   <% } %>
 </div>
 
-<% if (!(page.layout === 'post' || page.layout === 'page')) { %>
+<% if (!(page.layout === 'post' || page.layout === 'page' || page.layout === 'horizoncolumns')) { %>
   <div class="row mb-2">
   <div class="twelve columns">
     <img src="<%= config.root %>images/pheader.avif"
