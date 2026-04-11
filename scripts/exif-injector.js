@@ -112,7 +112,7 @@ module.exports = {
 
 // ── Hexo filter (only loaded when running inside Hexo) ────────────────────
 // Guard lets the file be required in tests without crashing on missing `hexo`
-if (typeof hexo !== 'undefined') {
+if (typeof hexo !== 'undefined' && !process.argv.includes('server')) {
   const path = require('path');
   const { ExifTool } = require('exiftool-vendored');
 
