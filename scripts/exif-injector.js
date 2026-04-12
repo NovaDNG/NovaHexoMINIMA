@@ -60,8 +60,9 @@ function processHtml(html, exifMap) {
 
     const isGallery = content.includes('_gallery');
     // Detect layout markers in any alt attribute before stripping them.
-    const hasMm = /\balt="[^"]*\b_mm\b/.test(content);
-    const hasMt = /\balt="[^"]*\b_mt\b/.test(content);
+    const hasMm   = /\balt="[^"]*\b_mm\b/.test(content);
+    const hasMt   = /\balt="[^"]*\b_mt\b/.test(content);
+    const hasXpan = /\balt="[^"]*\b_xpan\b/.test(content);
     const smalls = [];
 
     // Use a regex that handles attribute values containing '>' (e.g. data-exif="...<br>...")
@@ -87,7 +88,7 @@ function processHtml(html, exifMap) {
     });
 
     // Skip paragraphs with no EXIF and no layout markers.
-    if (smalls.length === 0 && !hasMm && !hasMt) return match;
+    if (smalls.length === 0 && !hasMm && !hasMt && !hasXpan) return match;
 
     // Add exif-para class to non-gallery paragraphs for position:relative
     let newPAttrs = pAttrs;
@@ -101,13 +102,15 @@ function processHtml(html, exifMap) {
 
     // Convert layout markers to data attributes on <p> so CSS can target
     // p[data-mm] / p[data-mt] after the alt text has been cleaned.
-    if (hasMm) newPAttrs = (newPAttrs + ' data-mm').trimStart();
-    if (hasMt) newPAttrs = (newPAttrs + ' data-mt').trimStart();
+    if (hasMm)   newPAttrs = (newPAttrs + ' data-mm').trimStart();
+    if (hasMt)   newPAttrs = (newPAttrs + ' data-mt').trimStart();
+    if (hasXpan) newPAttrs = (newPAttrs + ' data-xpan').trimStart();
 
     // Strip markers from alt text (accessibility + clean HTML output).
     const cleanedContent = content
       .replace(/(\balt="[^"]*?)\s*\b_mm\b\s*/g, '$1')
-      .replace(/(\balt="[^"]*?)\s*\b_mt\b\s*/g, '$1');
+      .replace(/(\balt="[^"]*?)\s*\b_mt\b\s*/g, '$1')
+      .replace(/(\balt="[^"]*?)\s*\b_xpan\b\s*/g, '$1');
     return `<p${newPAttrs ? ' ' + newPAttrs.trim() : ''}>${cleanedContent}${smalls.join('')}</p>`;
   });
 }
@@ -168,8 +171,15 @@ if (typeof hexo !== 'undefined' && !process.argv.includes('server')) {
     if (src.startsWith('/')) {
       const directPath = path.join(hexo.source_dir, src.slice(1));
       if (fs.existsSync(directPath)) return directPath;
-      // Post-asset: Hexo rewrote 'file.avif' → '/YEAR-MO/PostSlug/file.avif'
-      // The source file lives at _posts/<slug>/<filename>
+      // Post-asset permalink: Hexo rewrites post-folder images to '/YYYY-MM/PostSlug/file'.
+      // Extract the slug from the URL itself — works when a PAGE references images that
+      // live in a different post's asset folder (cross-page references like Frames pages).
+      const m = src.match(/^\/\d{4}-\d{2}\/(.+)/);
+      if (m) {
+        const candidate = path.join(hexo.source_dir, '_posts', m[1]);
+        if (fs.existsSync(candidate)) return candidate;
+      }
+      // Fallback: derive slug from this source file (for same-post relative assets).
       const slug = path.basename(data.source, path.extname(data.source));
       return path.join(hexo.source_dir, '_posts', slug, path.basename(src));
     }
