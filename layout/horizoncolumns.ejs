@@ -11,7 +11,17 @@
 
 var html = page.content;
 
-/* ── 1. Protect <details> blocks ──────────────────────────────────────── */
+/* ── 0. Extract ARCHIVE <details> blocks before standard protection ──── */
+var archiveChunks = [];
+html = html.replace(
+  /<details[\s\S]*?<summary[^>]*>\s*ARCHIVE\s*<\/summary>([\s\S]*?)<\/details>/gi,
+  function(match, innerContent) {
+    archiveChunks.push(innerContent);
+    return '';
+  }
+);
+
+/* ── 1. Protect remaining <details> blocks ──────────────────────────── */
 var detailsMap = Object.create(null);
 var detailsIdx = 0;
 html = html.replace(/<details[\s\S]*?<\/details>/gi, function(match) {
@@ -49,23 +59,66 @@ function restoreDetails(str) {
 var columns = [];
 rawChunks.forEach(function(chunk) {
   if (!chunk.trim()) return;
+  var embedCount = (chunk.match(/data-flickr-embed/g) || []).length;
   var h3Match = chunk.match(/^<h3[^>]*>([\s\S]*?)<\/h3>/i);
   if (h3Match) {
     /* Labeled column: extract label text, body is everything after </h3> */
     columns.push({
       type: 'labeled',
       label: h3Match[1],
-      body: restoreDetails(chunk.slice(h3Match[0].length))
+      body: restoreDetails(chunk.slice(h3Match[0].length)),
+      doubleEmbed: embedCount >= 2
     });
   } else {
     /* Bare column: strip the leading <hr> tag, rest is body */
     var hrMatch = chunk.match(/^<hr[^>]*\/?>/i);
     columns.push({
       type: 'bare',
-      body: restoreDetails(chunk.slice(hrMatch ? hrMatch[0].length : 0))
+      body: restoreDetails(chunk.slice(hrMatch ? hrMatch[0].length : 0)),
+      doubleEmbed: embedCount >= 2
     });
   }
 });
+/* ── 5. Build archive columns from extracted ARCHIVE blocks ─────────── */
+if (archiveChunks.length > 0) {
+  var archiveHtml = archiveChunks.join('\n');
+
+  /* Protect any <details> inside archive content */
+  archiveHtml = archiveHtml.replace(/<details[\s\S]*?<\/details>/gi, function(m) {
+    var tok = '\x00D' + detailsIdx + '\x00';
+    detailsMap[tok] = m;
+    detailsIdx++;
+    return tok;
+  });
+
+  /* Split archive into chunks using same rules as main content */
+  var archiveRaw = archiveHtml.split(/(?=<h3[\s>])|(?=<hr[\s\/>])|(?=<hr>)/i);
+
+  /* Add toggle column */
+  columns.push({ type: 'archive-toggle' });
+
+  /* Add archive columns */
+  archiveRaw.forEach(function(chunk) {
+    if (!chunk.trim()) return;
+    var embedCount = (chunk.match(/data-flickr-embed/g) || []).length;
+    var h3Match = chunk.match(/^<h3[^>]*>([\s\S]*?)<\/h3>/i);
+    if (h3Match) {
+      columns.push({
+        type: 'archived',
+        label: h3Match[1],
+        body: restoreDetails(chunk.slice(h3Match[0].length)),
+        doubleEmbed: embedCount >= 2
+      });
+    } else {
+      var hrMatch = chunk.match(/^<hr[^>]*\/?>/i);
+      columns.push({
+        type: 'archived-bare',
+        body: restoreDetails(chunk.slice(hrMatch ? hrMatch[0].length : 0)),
+        doubleEmbed: embedCount >= 2
+      });
+    }
+  });
+}
 %>
 
 <h2 class="mt-3"><%- page.title %></h2>
@@ -73,20 +126,46 @@ rawChunks.forEach(function(chunk) {
 <%- restoreDetails(preamble) %>
 
 <% if (columns.length) { %>
-<div class="hcol-scroll">
+<div class="hcol-scroll<%= page.wide_columns ? ' hcol-scroll--wide' : '' %>">
 <% columns.forEach(function(col) { %>
   <% if (col.type === 'labeled') { %>
   <div class="hcol-group">
     <div class="hcol-label"><%- col.label %></div>
-    <div class="hcol-body"><%- col.body %></div>
+    <div class="hcol-body<%= col.doubleEmbed ? ' hcol-body--double' : '' %>"><%- col.body %></div>
   </div>
-  <% } else { %>
+  <% } else if (col.type === 'bare') { %>
   <div class="hcol-group hcol-group--bare">
-    <div class="hcol-body"><%- col.body %></div>
+    <div class="hcol-body<%= col.doubleEmbed ? ' hcol-body--double' : '' %>"><%- col.body %></div>
+  </div>
+  <% } else if (col.type === 'archive-toggle') { %>
+  <div class="hcol-group hcol-archive-toggle" role="button" tabindex="0" aria-expanded="false">
+    <div class="hcol-label">ARCHIVE</div>
+  </div>
+  <% } else if (col.type === 'archived' || col.type === 'archived-bare') { %>
+  <div class="hcol-group<%= col.type === 'archived-bare' ? ' hcol-group--bare' : '' %> hcol-group--archived">
+    <% if (col.type === 'archived') { %>
+    <div class="hcol-label"><%- col.label %></div>
+    <% } %>
+    <div class="hcol-body<%= col.doubleEmbed ? ' hcol-body--double' : '' %>"><%- col.body %></div>
   </div>
   <% } %>
 <% }); %>
 </div>
+<script>
+(function() {
+  var toggle = document.querySelector('.hcol-archive-toggle');
+  if (!toggle) return;
+  function doToggle() {
+    var scroll = toggle.closest('.hcol-scroll');
+    var open = scroll.classList.toggle('archive-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  toggle.addEventListener('click', doToggle);
+  toggle.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doToggle(); }
+  });
+})();
+</script>
 <% } %>
 
 <%- partial('partial/giscus') %>

@@ -719,13 +719,16 @@ details.is-closing > :not(summary) {
     }
     body {
         background-color: #fff;
-    }
-    table, img, svg {
-        break-inside: avoid;
         display: block;
     }
-    p:has(> img) {
-        break-inside: avoid;
+    table, img, svg {
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+        display: block;
+    }
+    p:has(> img) figure, a:has(> img), .exif-para {
+        break-inside: avoid-page;
+        page-break-inside: avoid;
     }
     img:not([alt~="_gallery"]) {
         max-width: 87% !important;
@@ -876,6 +879,15 @@ details.is-closing > :not(summary) {
   opacity: 0.3;
 }
 
+/* Archive columns: hidden until toggled */
+.hcol-group--archived {
+  display: none;
+}
+
+.hcol-scroll.archive-open .hcol-group--archived {
+  display: block;
+}
+
 /* ── horizoncolumns: landscape ─────────────────────────────────────────
    Mirrors the archive landscape layout. Full-bleed technique:
      width: 100vw + margin-left: calc(50% - 50vw)
@@ -912,13 +924,12 @@ details.is-closing > :not(summary) {
   /* Labeled column: vertical kanji-style label, same as .archive-year-label */
   .hcol-label {
     writing-mode: vertical-rl;
-    text-orientation: upright;
-    font-family: "Toppan Bunkyu Midashi Mincho", "Ten Mincho", "HYXuanSong",
+    font-family: "Redaction", "Toppan Bunkyu Midashi Mincho", "Ten Mincho", "HYXuanSong",
       "FZYouSongJ GBK", "Source Han Serif", "Noto Serif TC",
       -apple-system, BlinkMacSystemFont, serif;
     font-size: 2.33em;
     font-weight: 900;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.015em;
     color: color-mix(in srgb, currentColor 56%, transparent);
     flex-shrink: 0;
     padding: 2px 0 0 0;
@@ -934,5 +945,80 @@ details.is-closing > :not(summary) {
   /* Bare column: suppress the portrait ::before divider */
   .hcol-group--bare::before {
     display: none;
+  }
+
+  /* Wide-column mode: no body max-width */
+  .hcol-scroll--wide .hcol-body {
+    max-width: none;
+  }
+
+  /* Reset the global break-out media rules inside wide columns.
+     The break-out (left:50%/transform) is designed for single-column pages;
+     inside a horizontally-scrolling hcol-body it overflows the column. */
+  .hcol-scroll--wide .hcol-body img:not(.icon),
+  .hcol-scroll--wide .hcol-body video,
+  .hcol-scroll--wide .hcol-body iframe:not(.giscus-frame):not(.giscus),
+  .hcol-scroll--wide .hcol-body embed,
+  .hcol-scroll--wide .hcol-body object {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    max-width: 95vw;
+    max-height: 90vh;
+    width: auto;
+  }
+
+  /* Reset the gallery-paragraph full-bleed positioning inside wide columns */
+  .hcol-scroll--wide .hcol-body p:has(img[alt~="_gallery"]) {
+    position: static;
+    left: auto;
+    translate: none;
+    width: auto;
+  }
+
+
+  /* Archive columns hidden by default in landscape too.
+     Must come AFTER .hcol-group { display: flex } (line ~913) to win cascade. */
+  .hcol-group--archived {
+    display: none;
+  }
+
+  /* Archive toggle: pointer cursor and dim/reveal label */
+  .hcol-archive-toggle {
+    cursor: pointer;
+  }
+
+  .hcol-archive-toggle .hcol-label {
+    opacity: 0.45;
+    transition: opacity 0.2s ease;
+  }
+
+  .hcol-archive-toggle:hover .hcol-label,
+  .hcol-scroll.archive-open .hcol-archive-toggle .hcol-label {
+    opacity: 1;
+  }
+
+  /* Reveal archive columns when open */
+  .hcol-scroll.archive-open .hcol-group--archived {
+    display: flex;
+  }
+
+  /* Horizontal fill for links inside vertical labels (matches tategaki fix) */
+  .hcol-label a:not(.icon) {
+    text-decoration: underline 2px #E2001A;
+    text-underline-offset: -2px;
+    background-image: linear-gradient(
+      to left,
+      rgba(0, 0, 0, 0) 50%,
+      var(--link-hover-accent, #e2001a) 50%
+    );
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    transition: all 0.2s ease-in;
+  }
+
+  .hcol-label a:hover:not(.icon),
+  .hcol-label a:focus:not(.icon) {
+    background-position: 0 0;
   }
 }
