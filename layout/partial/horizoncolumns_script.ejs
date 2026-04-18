@@ -15,8 +15,6 @@
     }
 
     // Wheel → horizontal scroll momentum
-    // Negated deltaY: LTR layout reads left-to-right, so scroll-down advances rightward
-    // (opposite sign from tategaki which uses vertical-rl reading direction)
     var portraitQuery = window.matchMedia('(orientation: portrait)');
     var hcolScroll = document.querySelector('.hcol-scroll');
     if (hcolScroll && window.createMomentumScroller) {
@@ -27,7 +25,7 @@
         var maxScrollLeft = hcolScroll.scrollWidth - hcolScroll.clientWidth;
         if (maxScrollLeft <= 0) return;
         event.preventDefault();
-        addVelocity(-event.deltaY);
+        addVelocity(event.deltaY);
       }, { passive: false });
     }
   })();
