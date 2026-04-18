@@ -194,6 +194,9 @@
   <% if (page.yoishigure_index || page.tategaki) { %>
   <%- css('css/yoishigure.css') %>
   <% } %>
+  <% if (page.layout === 'horizoncolumns') { %>
+  <%- css('css/horizoncolumns.css') %>
+  <% } %>
   <%- partial('partial/scroll_momentum') %>
 
   <!-- Favicon
