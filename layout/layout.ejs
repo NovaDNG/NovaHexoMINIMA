@@ -36,7 +36,11 @@
     var cleaned = page.content
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<small[^>]*>[\s\S]*?<\/small>/gi, '');
+      .replace(/<small[^>]*>[\s\S]*?<\/small>/gi, '')
+      .replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '')
+      .replace(/<p[^>]*>\s*<a[^>]*>[^<]*<\/a>\s*<\/p>/gi, '')
+      .replace(/<\/p>/gi, ' ')
+      .replace(/<br\s*\/?>/gi, ' ');
     return strip_html(cleaned)
       .replace(/\n/g, ' ')
       .replace(/\s+/g, ' ')
@@ -190,6 +194,7 @@
   <% if (page.yoishigure_index || page.tategaki) { %>
   <%- css('css/yoishigure.css') %>
   <% } %>
+  <%- partial('partial/scroll_momentum') %>
 
   <!-- Favicon
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
