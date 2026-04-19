@@ -7,6 +7,21 @@
 
     // TCY is manual — use <span class="tcy"> in markup.
 
+    // Fallback for embed iframe context where scroll_momentum.ejs is not loaded.
+    if (!window.createMomentumScroller) {
+      window.createMomentumScroller = function (el) {
+        var velocity = 0, animating = false, FRICTION = 0.88, MIN_VELOCITY = 0.5;
+        function tick() {
+          if (Math.abs(velocity) < MIN_VELOCITY) { velocity = 0; animating = false; return; }
+          var max = el.scrollWidth - el.clientWidth;
+          el.scrollLeft = Math.max(0, Math.min(max, el.scrollLeft + velocity));
+          velocity *= FRICTION;
+          requestAnimationFrame(tick);
+        }
+        return function (delta) { velocity += delta; if (!animating) { animating = true; requestAnimationFrame(tick); } };
+      };
+    }
+
     function bindWheelToHorizontalScroll(el) {
       if (!el || el.dataset.tategakiBound === '1') return;
       el.dataset.tategakiBound = '1';
