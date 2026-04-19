@@ -193,7 +193,7 @@
 
         userInteracted = true;
         event.preventDefault();
-        addVelocity(event.deltaY);
+        addVelocity(-event.deltaY);
         updateEdgeFadeState();
       }, { passive: false });
 
