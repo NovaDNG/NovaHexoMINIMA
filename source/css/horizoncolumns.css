@@ -59,8 +59,6 @@
     padding-left: max(32px, calc(50vw - 412px));
     padding-right: 32px;
     box-sizing: border-box;
-    /* Snap to column boundaries after momentum coasts */
-    scroll-snap-type: x proximity;
   }
 
   .hcol-group {
@@ -69,8 +67,6 @@
     display: flex;
     gap: 1.87rem;
     align-items: flex-start;
-    /* Each column is a snap target */
-    scroll-snap-align: start;
   }
 
   /* Labeled column: vertical kanji-style label, same as .archive-year-label */
