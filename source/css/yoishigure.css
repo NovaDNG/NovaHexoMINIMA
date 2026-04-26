@@ -32,6 +32,7 @@ body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, tab
 
 body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a:not(.icon):not(.headerlink):hover,
 body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a:not(.icon):not(.headerlink):focus,
+body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a:not(.icon):not(.headerlink).yoi-inline-panel-open-link,
 body.page-yoishigure .trans > :where(p, details, h3, h4, blockquote, ul, ol, table, center) a.yoi-page-search-hit-meta.is-active:not(.icon):not(.headerlink) {
     background-position: 0 100%;
     color: #E9E6E2;
