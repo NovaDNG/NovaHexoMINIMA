@@ -195,7 +195,7 @@
             var parent = node.parentElement;
             if (!parent) return NodeFilter.FILTER_REJECT;
             if (parent.closest('.yoi-float-nav')) return NodeFilter.FILTER_REJECT;
-            if (parent.closest('.yoi-embed-modal')) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('.yoi-inline-panel')) return NodeFilter.FILTER_REJECT;
             if (parent.closest('script, style, code, pre, textarea, noscript')) return NodeFilter.FILTER_REJECT;
             return NodeFilter.FILTER_ACCEPT;
           }
