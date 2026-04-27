@@ -544,8 +544,11 @@ html.darkmode .yoi-float-nav__search-input {
 }
 
 html.darkmode .yoi-inline-panel {
-    /* Darker than the page bg (#19191A) for a readable recess effect. */
-    background: #0F0F10;
+    /* Transparent in dark mode: lets the page bg (#19191A) show through, which
+       matches the iframe's own dark-mode body bg, so the panel padding blends
+       with the lyrics area rather than reading as a distinct darker band.
+       The inset blue shadow alone provides the recess cue. */
+    background: transparent;
     box-shadow: inset 0 2px 24px 0 rgba(0, 123, 187, 0.12);
 }
 
