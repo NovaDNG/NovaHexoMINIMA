@@ -169,11 +169,14 @@ ${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
       const panel = document.createElement('div');
       panel.className = 'yoi-inline-panel';
       panel.dataset.href = href;
+      const inner = document.createElement('div');
+      inner.className = 'yoi-inline-panel__inner';
       const iframe = document.createElement('iframe');
       iframe.className = 'yoi-inline-panel__frame';
       iframe.loading = 'lazy';
       iframe.title = 'Tategaki preview';
-      panel.appendChild(iframe);
+      inner.appendChild(iframe);
+      panel.appendChild(inner);
       return { panel, iframe };
     }
 
