@@ -190,6 +190,8 @@ ${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
       void panel.offsetHeight; // force reflow so the explicit height is registered
       panel.style.height = '0';
       if (link) link.classList.remove('yoi-inline-panel-open-link');
+      const followingSibling = panel.nextElementSibling;
+      if (followingSibling) followingSibling.classList.remove('yoi-inline-panel-following');
       let removed = false;
       const finalize = () => {
         if (removed) return;
@@ -213,6 +215,8 @@ ${scriptText ? `<script>${safeInlineScript(scriptText)}<\/script>` : ''}
       void panel.offsetHeight; // ensure starting height:0 is registered before transition
 
       link.classList.add('yoi-inline-panel-open-link');
+      const followingSibling = panel.nextElementSibling;
+      if (followingSibling) followingSibling.classList.add('yoi-inline-panel-following');
 
       // Simultaneously collapse previous panel (if any)
       const previousPanel = openPanel;

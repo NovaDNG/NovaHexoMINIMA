@@ -548,3 +548,19 @@ html.darkmode .yoi-inline-panel {
     background: none;
     box-shadow: inset 0 2px 24px 0 rgba(0, 123, 187, 0.12);
 }
+
+/* Margin displacement when a panel is open: the active link's <p> hugs the
+   panel below; the <p> after the panel inherits the displaced bottom margin
+   as its new top margin. Transitions match the panel's 0.2s height animation
+   so the layout shifts smoothly during open and close. */
+body.page-yoishigure .trans p {
+    transition: margin-top 0.2s ease-in, margin-bottom 0.2s ease-in;
+}
+
+body.page-yoishigure .trans p:has(a.yoi-inline-panel-open-link) {
+    margin-bottom: 0;
+}
+
+body.page-yoishigure .trans p.yoi-inline-panel-following {
+    margin-top: 1em;
+}
