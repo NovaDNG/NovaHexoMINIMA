@@ -536,8 +536,7 @@ html.darkmode .yoi-float-nav__search-input {
 }
 
 html.darkmode .yoi-inline-panel {
-    /* Background is the same #DADAD8 light beige in dark mode (intentional
-       contrast against the dark page). Shadow shifts to a single softer
-       inset spread. */
+    /* Darker than the page bg (#19191A) for a readable recess effect. */
+    background: #0F0F10;
     box-shadow: inset 0 2px 24px 0 rgba(0, 123, 187, 0.12);
 }
