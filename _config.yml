@@ -52,6 +52,7 @@ thumbnail: /images/thumbnail.avif
 
 article:
   thumbnail: false
+  embed_preview: false
 
 # DISQUS comments (sign up to Disqus to get disqus_shortname)
 disqus_enabled: false

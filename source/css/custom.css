@@ -874,6 +874,8 @@ details.is-closing > :not(summary) {
     position: relative;
     width: 100vw;
     max-width: 100vw;
+    margin-top: 1em;
+    margin-bottom: 1em;
     margin-left: calc(50% - 50vw);
     box-sizing: border-box;
     background: #DADAD8;
@@ -887,7 +889,7 @@ details.is-closing > :not(summary) {
 
 .yoi-inline-panel__inner {
     box-sizing: border-box;
-    padding: 2.5rem 0.33rem 0; /* Reduced from 6.67rem for general posts */
+    padding: 0; /* Reduced from 6.67rem for general posts */
 }
 
 /* Specific padding for Yoishigure when it's open */
@@ -919,34 +921,11 @@ html.darkmode .yoi-inline-panel {
     box-shadow: inset 0 4px 8px -2px rgba(0, 123, 187, 0.12), inset 0 -2px 2px -1px rgba(0, 123, 187, 0.12);
 }
 
-.trans p {
-    transition: margin-top 0.2s ease-in, margin-bottom 0.2s ease-in;
-}
-
 .trans p:has(a.yoi-inline-panel-open-link) {
     margin-bottom: 0;
 }
 
-.trans p.yoi-inline-panel-following {
+.trans .yoi-inline-panel-following {
     margin-top: 1em;
 }
 
-/* Post Preview Read More Button */
-.yoi-embed-read-more {
-    display: block;
-    margin: 3rem auto 5rem;
-    text-align: center;
-    font-family: "Berkeley Mono", monospace;
-    text-decoration: none !important;
-    color: var(--link-hover-accent, #007bbb);
-    border: 1px solid var(--link-hover-accent, #007bbb);
-    padding: 0.6rem 1.4rem;
-    border-radius: 4px;
-    width: fit-content;
-    transition: all 0.2s;
-    background: transparent;
-}
-.yoi-embed-read-more:hover {
-    background: var(--link-hover-accent, #007bbb);
-    color: #fff !important;
-}

@@ -257,6 +257,10 @@
   <% if (page.yoishigure_index || page.tategaki) { %>
   <%- partial('partial/yoishigure_embed_preview') %>
   <% } %>
+  
+  <% if (is_post() && theme.article.embed_preview !== false) { %>
+  <%- partial('partial/post_embed_preview') %>
+  <% } %>
   <script>
     (function () {
       var DETAILS_ANIM_MS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--details-anim-ms')) || 200;
