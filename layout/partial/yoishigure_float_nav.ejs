@@ -43,47 +43,107 @@
 
 <script>
   (function () {
-    // Build the nav list from the live DOM instead of relying on EJS regex extraction.
-    // querySelectorAll gives an accurate, parser-built view of what's on the page.
-    function buildNavList() {
+    // Populate the nav list from either a custom items array or a live DOM scan.
+    // customItems: array of { id, text, level } — used when the sort view is active.
+    // Passing nothing (or null) scans h3[id]/h4[id] from .trans as before.
+    function buildNavItems(customItems) {
       var nav = document.querySelector('.yoi-float-nav');
       if (!nav) return;
       var list = nav.querySelector('.yoi-float-nav__list');
       if (!list) return;
 
-      var scope = document.querySelector('body.page-yoishigure .trans');
-      if (!scope) return;
+      list.innerHTML = '';
 
-      var headings = Array.prototype.slice.call(scope.querySelectorAll('h3[id], h4[id]'));
-
-      if (!headings.length) {
-        list.innerHTML = '<p class="yoi-float-nav__empty">No headings found.</p>';
-        return;
+      var items;
+      if (customItems) {
+        items = customItems;
+      } else {
+        var scope = document.querySelector('body.page-yoishigure .trans');
+        if (!scope) return;
+        items = [];
+        Array.prototype.slice.call(scope.querySelectorAll('h3[id], h4[id]')).forEach(function (heading) {
+          var level = parseInt(heading.tagName.charAt(1), 10);
+          // Clone so we can strip headerlink anchors without touching the page
+          var clone = heading.cloneNode(true);
+          Array.prototype.forEach.call(clone.querySelectorAll('a.headerlink'), function (el) {
+            el.parentNode.removeChild(el);
+          });
+          var text = (clone.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!text) return;
+          items.push({ id: heading.id, text: text, level: level });
+        });
+        if (!items.length) {
+          list.innerHTML = '<p class="yoi-float-nav__empty">No headings found.</p>';
+          return;
+        }
       }
 
-      headings.forEach(function (heading) {
-        var level = parseInt(heading.tagName.charAt(1), 10);
-        var id = heading.id;
-
-        // Clone so we can strip headerlink anchors without touching the page
-        var clone = heading.cloneNode(true);
-        Array.prototype.forEach.call(clone.querySelectorAll('a.headerlink'), function (el) {
-          el.parentNode.removeChild(el);
-        });
-        var text = (clone.textContent || '').replace(/\s+/g, ' ').trim();
-        if (!text) return;
-
-        var row = document.createElement(level === 3 ? 'h3' : 'h4');
-        row.className = 'yoi-float-nav__h yoi-float-nav__h' + level;
-
+      items.forEach(function (item) {
+        var row = document.createElement(item.level === 3 ? 'h3' : 'h4');
+        row.className = 'yoi-float-nav__h yoi-float-nav__h' + item.level;
         var link = document.createElement('a');
         link.className = 'color-link';
-        link.href = '#' + id;
-        link.textContent = text;
-
+        link.href = '#' + item.id;
+        link.textContent = item.text;
         row.appendChild(link);
         list.appendChild(row);
       });
+    }
+
+    function addNavSortControls() {
+      var nav = document.querySelector('.yoi-float-nav');
+      if (!nav) return;
+      var list = nav.querySelector('.yoi-float-nav__list');
+      if (!list) return;
+
+      var lyricsRow = null;
+      var rows = Array.prototype.slice.call(list.children);
+      for (var i = 0; i < rows.length; i++) {
+        var ra = rows[i].querySelector('a');
+        if (ra && ra.textContent.trim() === '歌詞翻譯') { lyricsRow = rows[i]; break; }
+      }
+      if (!lyricsRow) return;
+
+      var existing = lyricsRow.querySelector('.yoi-nav-sort-bar');
+      if (existing) existing.remove();
+
+      var mainSortBar = document.getElementById('yoi-sort-bar');
+      var activeSort = 'orig';
+      if (mainSortBar) {
+        var activeEl = mainSortBar.querySelector('[data-sort].active');
+        if (activeEl) activeSort = activeEl.getAttribute('data-sort');
+      }
+
+      var bar = document.createElement('span');
+      bar.className = 'yoi-nav-sort-bar';
+      bar.appendChild(document.createTextNode('按'));
+
+      var dateSpan = document.createElement('span');
+      dateSpan.setAttribute('data-nav-sort', 'date');
+      dateSpan.textContent = '釋出日期';
+      if (activeSort === 'date') dateSpan.className = 'active';
+      bar.appendChild(dateSpan);
+      bar.appendChild(document.createTextNode('/'));
+
+      var origSpan = document.createElement('span');
+      origSpan.setAttribute('data-nav-sort', 'orig');
+      origSpan.textContent = '分類';
+      if (activeSort === 'orig') origSpan.className = 'active';
+      bar.appendChild(origSpan);
+      bar.appendChild(document.createTextNode('排列'));
+
+      bar.addEventListener('click', function (e) {
+        var tgt = e.target.closest ? e.target.closest('[data-nav-sort]') : null;
+        if (!tgt || !window.yoiSetSort) return;
+        window.yoiSetSort(tgt.getAttribute('data-nav-sort'));
+      });
+
+      lyricsRow.appendChild(bar);
+    }
+
+    function buildNavList() {
+      buildNavItems();
+      addNavSortControls();
     }
 
     function openAncestorDetails(node) {
@@ -582,6 +642,71 @@
         markCssReadyAndReveal();
       }, CSS_WAIT_SAFETY_MS);
     }
+
+    // Called by the sort feature whenever the view changes.
+    // sectionItems: array of { id, text } to replace the h4 sub-items under 歌詞翻譯.
+    // Pass nothing to restore the original heading scan (full rebuild).
+    window.yoiNavRebuild = function (sectionItems) {
+      var nav = document.querySelector('.yoi-float-nav');
+      if (!nav) return;
+      var list = nav.querySelector('.yoi-float-nav__list');
+      if (!list) return;
+
+      if (!sectionItems) {
+        buildNavItems();
+        addNavSortControls();
+        delete nav.dataset.scrollspyBound;
+        initYoiFloatNavScrollspy();
+        return;
+      }
+
+      // Find the 歌詞翻譯 h3 nav row and the h3 that follows it.
+      var rows = Array.prototype.slice.call(list.children);
+      var lyricsRow = null;
+      var nextH3Row = null;
+      for (var i = 0; i < rows.length; i++) {
+        var a = rows[i].querySelector('a');
+        if (!lyricsRow) {
+          if (a && a.textContent.trim() === '歌詞翻譯') lyricsRow = rows[i];
+        } else if (rows[i].tagName === 'H3') {
+          nextH3Row = rows[i];
+          break;
+        }
+      }
+
+      if (!lyricsRow) {
+        // Fallback: full rebuild
+        buildNavItems();
+        addNavSortControls();
+        delete nav.dataset.scrollspyBound;
+        initYoiFloatNavScrollspy();
+        return;
+      }
+
+      // Remove existing h4 sub-items between 歌詞翻譯 and the next h3.
+      var cur = lyricsRow.nextElementSibling;
+      while (cur && cur !== nextH3Row) {
+        var next = cur.nextElementSibling;
+        if (cur.tagName === 'H4') list.removeChild(cur);
+        cur = next;
+      }
+
+      // Insert year items as h4 sub-items before the next h3 (or at end).
+      sectionItems.forEach(function (item) {
+        var row = document.createElement('h4');
+        row.className = 'yoi-float-nav__h yoi-float-nav__h4';
+        var link = document.createElement('a');
+        link.className = 'color-link';
+        link.href = '#' + item.id;
+        link.textContent = item.text;
+        row.appendChild(link);
+        list.insertBefore(row, nextH3Row || null);
+      });
+
+      addNavSortControls();
+      delete nav.dataset.scrollspyBound;
+      initYoiFloatNavScrollspy();
+    };
 
     function init() {
       buildNavList();
