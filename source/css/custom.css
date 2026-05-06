@@ -934,12 +934,15 @@ html.darkmode .yoi-inline-panel {
    ============================================================ */
 
 .random-frame {
-    margin-block: 4rem;
+    margin-block: 16px;
     text-align: center; /* centers the inline <img> inside the block-level <a> */
 }
 
 .random-frame__img {
     max-width: 100vw;
     max-height: 100vh;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%)
 }
 
