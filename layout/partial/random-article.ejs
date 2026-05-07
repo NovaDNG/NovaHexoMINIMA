@@ -6,23 +6,19 @@
 </div>
 <script>
 (function () {
-  fetch('/random-posts.json')
-    .then(function (r) { return r.json(); })
-    .then(function (list) {
-      if (!Array.isArray(list) || list.length === 0) return;
-      var pick = list[Math.floor(Math.random() * list.length)];
-      var link = document.getElementById('random-article-link');
-      var dateEl = document.getElementById('random-article-date');
-      if (link && pick.url) {
-        link.href = pick.url;
-        link.textContent = pick.title || '—';
-      }
-      if (dateEl && pick.date) {
-        dateEl.textContent = new Date(pick.date).toLocaleDateString('en-US', {
-          month: 'long', day: 'numeric', year: 'numeric'
-        });
-      }
-    })
-    .catch(function () { /* silent */ });
+  var list = <%- inline_random_posts() %>;
+  if (!Array.isArray(list) || list.length === 0) return;
+  var pick = list[Math.floor(Math.random() * list.length)];
+  var link = document.getElementById('random-article-link');
+  var dateEl = document.getElementById('random-article-date');
+  if (link && pick.url) {
+    link.href = pick.url;
+    link.textContent = pick.title || '—';
+  }
+  if (dateEl && pick.date) {
+    dateEl.textContent = new Date(pick.date).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    });
+  }
 })();
 </script>
