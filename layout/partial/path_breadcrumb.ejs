@@ -28,35 +28,41 @@ function toRelativeUrl(u) {
   return s;
 }
 
-var crumbMetaBySource = Object.create(null);
+// url_for below yields root-relative paths (safe to cache for the whole build)
+// because _config.yml sets relative_link: false. Revisit if that ever changes.
+var crumbMetaBySource = crumb_meta(function () {
+  var meta = Object.create(null);
 
-// Prefer page front matter from source markdown
-if (site && site.pages) {
-  site.pages.forEach(function (p) {
-    if (!p || !p.title) return;
-    var key = normalizeSource(p.source);
-    if (key && !crumbMetaBySource[key]) {
-      crumbMetaBySource[key] = {
-        title: p.title,
-        href: toRelativeUrl(p.permalink || (p.path ? url_for(p.path) : ''))
-      };
-    }
-  });
-}
+  // Prefer page front matter from source markdown
+  if (site && site.pages) {
+    site.pages.forEach(function (p) {
+      if (!p || !p.title) return;
+      var key = normalizeSource(p.source);
+      if (key && !meta[key]) {
+        meta[key] = {
+          title: p.title,
+          href: toRelativeUrl(p.permalink || (p.path ? url_for(p.path) : ''))
+        };
+      }
+    });
+  }
 
-// Optional fallback to posts (in case some crumbs point to posts)
-if (site && site.posts) {
-  site.posts.forEach(function (p) {
-    if (!p || !p.title) return;
-    var key = normalizeSource(p.source);
-    if (key && !crumbMetaBySource[key]) {
-      crumbMetaBySource[key] = {
-        title: p.title,
-        href: toRelativeUrl(p.permalink || (p.path ? url_for(p.path) : ''))
-      };
-    }
-  });
-}
+  // Optional fallback to posts (in case some crumbs point to posts)
+  if (site && site.posts) {
+    site.posts.forEach(function (p) {
+      if (!p || !p.title) return;
+      var key = normalizeSource(p.source);
+      if (key && !meta[key]) {
+        meta[key] = {
+          title: p.title,
+          href: toRelativeUrl(p.permalink || (p.path ? url_for(p.path) : ''))
+        };
+      }
+    });
+  }
+
+  return meta;
+});
 
 function metaForCrumbPath(crumbPath) {
   var key = normalizeRoute(crumbPath);
