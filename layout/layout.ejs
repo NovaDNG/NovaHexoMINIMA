@@ -214,20 +214,11 @@
 
 <body<% if (page.yoishigure_index) { %> class="page-yoishigure"<% } else if (page.tategaki) { %> class="page-yoishigure page-yoishigure-sub"<% } %>>
   <%
-    function normalizeRouteForLayout(p) {
-      return String(p || '')
-        .replace(/^https?:\/\/[^/]+/i, '')
-        .replace(/[?#].*$/, '')
-        .replace(/index\.html$/i, '')
-        .replace(/\.html$/i, '')
-        .replace(/^\/+|\/+$/g, '');
-    }
-
     var isPageOrPost = page.layout === 'post' || page.layout === 'page' || page.layout === 'horizoncolumns';
     var hasPageBreadcrumb = false;
 
     if (page.layout === 'page' && page.breadcrumb !== false) {
-      var cleanPath = normalizeRouteForLayout(page.path || '');
+      var cleanPath = normalize_route(page.path || '');
       var segments = cleanPath ? cleanPath.split('/').filter(Boolean) : [];
       // Keep in sync with partial/path_breadcrumb.ejs: OMIT_LEVELS=1 and >=2 visible levels.
       hasPageBreadcrumb = segments.length >= 2;

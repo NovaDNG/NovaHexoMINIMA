@@ -3,15 +3,6 @@ function safeDecode(str) {
   try { return decodeURIComponent(str); } catch (e) { return str; }
 }
 
-function normalizeRoute(p) {
-  return String(p || '')
-    .replace(/^https?:\/\/[^/]+/i, '')
-    .replace(/[?#].*$/, '')
-    .replace(/index\.html$/i, '')
-    .replace(/\.html$/i, '')
-    .replace(/^\/+|\/+$/g, '');
-}
-
 function normalizeSource(p) {
   return String(p || '')
     .replace(/^\/+|\/+$/g, '')
@@ -65,13 +56,13 @@ var crumbMetaBySource = crumb_meta(function () {
 });
 
 function metaForCrumbPath(crumbPath) {
-  var key = normalizeRoute(crumbPath);
+  var key = normalize_route(crumbPath);
   return crumbMetaBySource[key] || null;
 }
 
 var OMIT_LEVELS = 1; // hide Home only
 
-var cleanPath = normalizeRoute(page.path || '');
+var cleanPath = normalize_route(page.path || '');
 var segments = cleanPath ? cleanPath.split('/').filter(Boolean) : [];
 
 var allCrumbs = [{ label: 'Home', href: url_for('/'), isLast: false }];
