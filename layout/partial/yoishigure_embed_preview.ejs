@@ -66,9 +66,11 @@
     }
 
     function findTategakiScript(doc) {
-      const script = [...doc.querySelectorAll('script')].find(s =>
-        (s.textContent || '').includes("var mobileQuery = window.matchMedia('(max-width: 900px)')")
-      );
+      // Select by the stable marker attribute set on tategaki_script.ejs's <script>,
+      // NOT by matching its source text: HTML minification renames variables and
+      // normalizes quotes in the built pages, which silently breaks any literal
+      // text match — that is exactly the regression this lookup used to suffer.
+      const script = doc.querySelector('script[data-yoi-tategaki]');
       return script ? script.textContent : '';
     }
 
