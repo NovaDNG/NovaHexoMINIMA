@@ -1,18 +1,8 @@
 <%
-function normalizeNavRoute(pathLike) {
-  return String(pathLike || '')
-    .replace(/^https?:\/\/[^/]+/i, '')
-    .replace(/[?#].*$/, '')
-    .replace(/index\.html$/i, '')
-    .replace(/\.html$/i, '')
-    .replace(/^\/+|\/+$/g, '')
-    .toLowerCase();
-}
-
-var currentPath = normalizeNavRoute(page && page.path ? page.path : '');
+var currentPath = normalize_route(page && page.path ? page.path : '').toLowerCase();
 
 function isNavCurrent(targetPath) {
-  var normalizedTarget = normalizeNavRoute(targetPath);
+  var normalizedTarget = normalize_route(targetPath).toLowerCase();
   if (!normalizedTarget) {
     return currentPath === '';
   }
