@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { normalizeRoute } = require('./route-helpers');
+const { normalizeRoute } = require('../scripts/route-helpers');
 
 test('strips origin, trailing slash, index.html', () => {
   assert.equal(normalizeRoute('https://novadng.studio/Frames/index.html'), 'Frames');

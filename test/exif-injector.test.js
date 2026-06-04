@@ -1,4 +1,4 @@
-// themes/minima/scripts/exif-injector.test.js
+// themes/minima/test/exif-injector.test.js
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -10,7 +10,7 @@ const {
   buildExifHTML,
   getExifClass,
   processHtml,
-} = require('./exif-injector');
+} = require('../scripts/exif-injector');
 
 // ── formatAperture ────────────────────────────────────────
 test('formatAperture: integer', () => {
