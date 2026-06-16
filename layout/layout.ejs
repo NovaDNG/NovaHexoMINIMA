@@ -47,6 +47,14 @@
       .replace(/^\s+|\s+$/g, '')
       .substring(0, 150);
   })();
+
+  // Absolute URL for social-share images. full_url_for() prepends the site
+  // origin + root with a proper slash (config.url has its trailing slash
+  // stripped at runtime, so manual concatenation drops the separator);
+  // social_image_path() resolves bare post-asset thumbnails against the page
+  // dir and passes root-relative / external values through. Falls back to the
+  // theme default when a page/post sets no thumbnail.
+  var ogImage = full_url_for(social_image_path(page.thumbnail, page.path) || theme.thumbnail);
   %>
   <title><%= title %></title>
   <% if (config.sitemap) { %>
@@ -58,11 +66,7 @@
   <meta name="keywords" content="<%= config.keywords %>">
   <% } %>
   <meta name="author" content="<%- config.author %>">
-  <% if (is_post() || is_page()) { %>
-  <meta property="og:image" content="<%-config.url + page.thumbnail %>">
-  <% } else { %>
-  <meta property="og:image" content="<%-config.url + theme.thumbnail %>">
-  <% } %>
+  <meta property="og:image" content="<%= ogImage %>">
   <meta property="og:site_name" content="<%= config.title %>" />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="<%= title %>" />
@@ -72,11 +76,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<%= title %>">
   <meta name="twitter:description" content="<%= pageDescription %>">
-  <% if (is_post() || is_page()) { %>
-  <meta name="twitter:image" content="<%-config.url + page.thumbnail %>">
-  <% } else { %>
-  <meta name="twitter:image" content="<%-config.url + theme.thumbnail %>">
-  <% } %>
+  <meta name="twitter:image" content="<%= ogImage %>">
   <meta name="twitter:url" content="<%= url.replace(/index\.html$/, '').replace(/index\.html$/, '') %>" />
 
   <!-- Mobile Specific Metas
@@ -344,6 +344,28 @@
         document.addEventListener('DOMContentLoaded', init);
       } else {
         init();
+      }
+    })();
+  </script>
+
+  <script>
+    // Reveal each image's drop shadow only after it loads (see custom.css
+    // img.img-loaded): empty reserved placeholders stay shadowless and the shadow
+    // fades in via the CSS transition. `load` doesn't bubble, so listen in the
+    // capture phase — this also covers images inserted/lazy-loaded later.
+    (function () {
+      function markLoaded(t) { if (t && t.tagName === 'IMG') t.classList.add('img-loaded'); }
+      document.addEventListener('load', function (e) { markLoaded(e.target); }, true);
+      function sweep() {
+        var imgs = document.querySelectorAll('img');
+        for (var i = 0; i < imgs.length; i++) {
+          if (imgs[i].complete && imgs[i].naturalWidth > 0) markLoaded(imgs[i]);
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sweep);
+      } else {
+        sweep();
       }
     })();
   </script>

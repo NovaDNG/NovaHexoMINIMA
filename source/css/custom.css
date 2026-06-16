@@ -226,7 +226,10 @@ img {
     max-width: 100%;
     height: auto;
     max-height: 100vh;
-    box-shadow: var(--shadow-default);
+    /* Shadow is revealed only after the image loads (see img.img-loaded) so empty
+       reserved placeholders show no shadow; it then fades in via this transition. */
+    box-shadow: none;
+    transition: box-shadow 0.1s ease-in;
     vertical-align: bottom; /* removes inline baseline gap without negative margin */
 }
 
@@ -234,6 +237,12 @@ img.noshadow {
     box-shadow: none;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
+}
+
+/* Drop shadow appears once the image has actually loaded (.img-loaded is set by
+   the loader script in layout.ejs), so reserved placeholders stay shadowless. */
+img.img-loaded:not(.noshadow) {
+    box-shadow: var(--shadow-default);
 }
 
 p[data-mt] {
@@ -330,7 +339,7 @@ p[data-mm] {
     }
 
     .container a:has(> img:not(.icon):not([alt~="_gallery"])) > img {
-        transition: filter 0.2s ease-in-out;
+        transition: filter 0.2s ease-in-out, box-shadow 0.1s ease-in;
         filter: grayscale(0%);
     }
 
