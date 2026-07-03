@@ -11,7 +11,7 @@
 .hcol-label {
   writing-mode: horizontal-tb;
   font-family: "Redaction-Bold", "MetroSungPlus-TC", toppan-bunkyu-midashi-min-st, ten-mincho, "HYXuanSong", "FZYouSongJ GBK", "Source Han Serif", "Noto Serif TC", -apple-system, BlinkMacSystemFont, serif;
-  font-weight: bold;
+/*  font-weight: bold; */
   font-size: 1.17em;
   margin: 1em 0 0.5em;
   color: currentColor;
@@ -81,7 +81,7 @@
     writing-mode: vertical-rl;
     font-family: "Redaction-Bold", "MetroSungPlus-TC", toppan-bunkyu-midashi-min-st, ten-mincho, "HYXuanSong", "FZYouSongJ GBK", "Source Han Serif", "Noto Serif TC", -apple-system, BlinkMacSystemFont, serif;
     font-size: 2.33em;
-    font-weight: bold;
+/*    font-weight: bold; */
     letter-spacing: 0.015em;
     color: color-mix(in srgb, currentColor 56%, transparent);
     flex-shrink: 0;

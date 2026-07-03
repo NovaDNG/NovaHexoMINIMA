@@ -183,7 +183,7 @@ html.darkmode body {
 .nine.columns.nav {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 2.33rem;
+    gap: 1.15rem 3.33rem;
 }
 
 /* Constrain the hover-highlight block to font-size height.
@@ -541,7 +541,7 @@ html.darkmode a:not(.icon) ruby rt {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.25rem 1rem;
+    gap: 1.15rem 3.33rem;
     margin-bottom: 4rem;
     line-height: 166%;
 }
@@ -555,7 +555,7 @@ html.darkmode a:not(.icon) ruby rt {
 /* Social icon row in the footer */
 .posisi {
     display: flex;
-    gap: 1rem;
+    gap: 1.15rem 1rem;
     will-change: transform;
 }
 
@@ -790,7 +790,7 @@ details.is-closing > :not(summary) {
     text-orientation: upright;
     font-family: toppan-bunkyu-midashi-min-st, ten-mincho, MetroSungPlus-TC, "HYXuanSong", "FZYouSongJ GBK", "Source Han Serif", "Noto Serif TC", -apple-system, BlinkMacSystemFont, serif;
     font-size: 2.33em;
-    font-weight: 900;
+/*    font-weight: 900; */
     letter-spacing: 0.15em;
     /* Match the muted color treatment used by .lit elsewhere */
     color: color-mix(in srgb, currentColor 56%, transparent);
