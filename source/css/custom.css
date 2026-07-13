@@ -128,6 +128,10 @@ html.darkmode body {
     margin: 7.7em 0 7.7em 0;
 }
 
+.hr {
+    margin: 3.3rem 0 3.3rem 0;
+}
+
 /* Utility: add 2rem left margin */
 .ml {
     margin-left: 2rem;
