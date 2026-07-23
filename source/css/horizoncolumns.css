@@ -62,8 +62,8 @@
     mask-image: linear-gradient(
             to right,
             transparent 0,
-            black 1vw,
-            black calc(100% - 1vw),
+            black 1.67vw,
+            black calc(100% - 1.67vw),
             transparent 100%
             );
   }

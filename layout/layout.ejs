@@ -236,10 +236,10 @@
           <% } %>
           <%- body %>
           <%- partial('partial/footer') %>
-          <% if (isPageOrPost && !hasPageBreadcrumb) { %>
-            <%- partial('partial/pheader')  %>
-          <% } %>
         </div>
+        <% if (isPageOrPost && !hasPageBreadcrumb) { %>
+          <%- partial('partial/pheader')  %>
+        <% } %>
       </div>
 
     </div>

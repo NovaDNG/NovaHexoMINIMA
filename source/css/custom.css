@@ -51,6 +51,15 @@ html.darkmode body {
     animation: transitionPlay 0.7s;
 }
 
+/* #pheader used to sit inside .trans and animate with it. It now renders
+   as a sibling of .trans (so the fixed right-edge rail on wide screens is
+   not trapped in .trans's transform containing block). Re-add the same
+   entry animation here so the mobile footer form is unchanged. The wide
+   rail disables this animation (see the min-width:769px block below). */
+#pheader {
+    animation: transitionPlay 0.7s;
+}
+
 @keyframes transitionPlay {
     from {
         opacity: 0;
@@ -175,6 +184,40 @@ html.darkmode body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+/* In the pheader footer form the switch must stay in normal flow. As
+   position:absolute (the base .mode above) it leaves flow, so its Skeleton
+   column collapses and the switch lands on top of the "NovaDNG Studio" title
+   whenever the columns stack (mobile) — the garbled overlap. Scoped to #pheader
+   so the header's own .mode toggle is unaffected; the wide rail keeps this and
+   adds margin:0. */
+#pheader .mode {
+    position: static;
+}
+
+/* Footer form (≤768px): keep the theme switch inline with the site title —
+   "★ NovaDNG Studio" on one line — instead of the two Skeleton columns
+   stacking on narrow phones. The row must be an explicit flex line with an
+   explicit width (a Skeleton .row shrink-wraps to 0 once it becomes a flex
+   container), and the columns drop their floats/percentage widths so they
+   size to content and sit side by side. (The >768px rail lays this row out
+   itself, so this is bounded to the footer form.) */
+@media (max-width: 768px) {
+    #pheader > .row:not(.mb-2) {
+        display: flex;
+        align-items: baseline;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    #pheader > .row:not(.mb-2) > .two.columns,
+    #pheader > .row:not(.mb-2) > .six.columns {
+        float: none;
+        width: auto;
+    }
+    #pheader > .row:not(.mb-2) > .six.columns {
+        padding-left: 0;   /* drop .ml-1's 4rem indent so the title hugs the switch */
+    }
 }
 
 /* Skeleton column wrapper for the mode toggle — keeps it tight to its icon */
@@ -627,6 +670,172 @@ html.darkmode #logoLight {
 
 html.darkmode #logoDark {
     opacity: 1;
+}
+
+
+/* ============================================================
+   PHEADER — right-edge vertical line (viewports > 768px)
+   Detaches the post/page pheader from the footer flow and pins it
+   to the right edge of the viewport as a single vertical line: every
+   text item rotated 90° via vertical writing-mode, no panel.
+   Order top→bottom: theme switch, site title, nav links, logo.
+   All rules are scoped to #pheader and gated at >768px, so the
+   default (mobile) footer form below 769px is untouched.
+   ============================================================ */
+@media (min-width: 769px) {
+    #pheader.pheader {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        /* Kept above body text so the nav stays clickable; content media is
+           raised past it below, so pictures/video pass over the rail. */
+        z-index: 20;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 0.56rem 0 0.56rem;
+        /* Vertical writing-mode rotates the Latin items 90° and flows them
+           top→bottom as one line; replaced images (the logo) stay upright. */
+        writing-mode: vertical-rl;
+        display: flex;
+        flex-direction: row;      /* main axis is vertical under vertical-rl */
+        flex-wrap: nowrap;
+        align-items: center;      /* centre items across the thin strip */
+        justify-content: flex-start;   /* top-align items; logo pushed to bottom below */
+        gap: 3.33rem;
+        line-height: 1.25;
+        /* no panel */
+        background: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        border-radius: 0;
+        animation: none;
+        opacity: 0.56;
+        transition: opacity 0.2s ease;
+    }
+
+    #pheader.pheader:hover {
+        opacity: 1;
+    }
+
+    /* Raise the whole content layer past the rail (which keeps z-index:20, so
+       it still sits above <body> and stays clickable in the empty gutter where
+       .trans doesn't reach). Lifting .trans rather than individual images is
+       deliberate: break-out images use transform, gallery <p>s use translate,
+       and posts hand-author full-bleed wrappers with inline `translate:-50% 0`
+       — each creates a stacking context that traps a child's z-index, so
+       per-image z-index can't clear the rail. One layer covers them all.
+       Scoped via :has() to the pages that actually render the rail. (.trans and
+       #pheader are NOT siblings — the rail sits beside .trans's wrapper div —
+       so this keys off the page containing a rail rather than sibling order.) */
+    body:has(#pheader.pheader) .trans {
+        position: relative;
+        z-index: 21;
+    }
+
+    /* Exception — horizontal-scroll (horizoncolumns) pages: the scroll stage
+       (.hcol-scroll) is full-viewport-width AND interactive, so as part of the
+       raised .trans layer it would blanket the rail and swallow every nav click.
+       There's no gutter to fall back on here, so lift the rail back above the
+       content on these pages — the nav's usability wins over pictures-over-rail
+       (which is a photo-post nicety, irrelevant on a horizontal scroller). */
+    body:has(.hcol-scroll) #pheader.pheader {
+        z-index: 22;
+    }
+
+    /* --- Line order: switch+title (B) → nav (A) → logo (C) --- */
+    #pheader.pheader > .row:not(.mb-2) { order: 1; }  /* B: switch + title */
+    #pheader.pheader > .twelve.columns { order: 2; }  /* A: nav            */
+    #pheader.pheader > .row.mb-2 {                     /* C: logo           */
+        order: 3;
+        margin-top: auto;         /* stick the logo to the bottom edge */
+    }
+
+    /* --- Flatten the Skeleton grid so items sit on the one line --- */
+    #pheader.pheader .row,
+    #pheader.pheader .columns,
+    #pheader.pheader .column {
+        float: none;
+        width: auto;
+        max-width: none;
+        margin: 0;
+    }
+
+    /* Sub-groups flow along the same vertical line */
+    #pheader.pheader > .row:not(.mb-2),
+    #pheader.pheader .nine.columns.nav {
+        display: flex;
+        flex-direction: row;      /* vertical main axis under vertical-rl */
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 3rem;
+    }
+
+    /* The switch+title row (block B) uses a margin for its internal spacing
+       instead of `gap`: under vertical-rl, a flex column-gap also renders once
+       BEFORE the first item here, adding a phantom 3rem lead above the switch.
+       (The nav block doesn't exhibit it.) So zero the gap and put the switch↔
+       title spacing on the title column via a physical margin-top. */
+    #pheader.pheader > .row:not(.mb-2) {
+        gap: 0;
+    }
+
+    /* Tategaki-style nav hover: the accent fills the vertical text left→right
+       (physical X) instead of the default bottom→top fill used for horizontal
+       text. Horizontal gradient (accent | transparent) slid along X:
+       rest = transparent shown, hover/active = accent shown, entering from the
+       left. background-image/size/position are physical, unaffected by the
+       vertical writing-mode. */
+    #pheader.pheader .nine.columns.nav a:not(.icon) {
+        background-image: linear-gradient(
+            to right,
+            var(--link-hover-accent, #E2001A) 50%,
+            rgba(0, 0, 0, 0) 50%
+        );
+        background-size: 200% 100%;
+        background-position: 100% 0;   /* rest: transparent half shown */
+        transition: background-position 0.2s ease-out;
+        text-decoration: none;         /* drop the resting underline */
+    }
+    #pheader.pheader .nine.columns.nav a:hover:not(.icon),
+    #pheader.pheader .nine.columns.nav a:focus:not(.icon),
+    #pheader.pheader .nine.columns.nav a.is-active:not(.icon),
+    #pheader.pheader .nine.columns.nav a[aria-current="page"]:not(.icon) {
+        background-position: 0 0;      /* filled: accent swept in from the left */
+    }
+
+    /* B: theme switch above the title */
+    #pheader.pheader > .row:not(.mb-2) > .two.columns { order: 1; }  /* switch */
+    #pheader.pheader > .row:not(.mb-2) > .six.columns {
+        order: 2;                 /* title */
+        margin-top: 3rem;         /* switch↔title spacing (replaces block B's gap) */
+    }
+    #pheader.pheader .six.columns h3 {
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    /* Theme switch (.mode is position:absolute by default) → back into flow */
+    #pheader.pheader .mode {
+        position: static;
+        margin: 0;
+    }
+
+    /* Logo stays upright (writing-mode doesn't rotate images); keep it small
+       so the vertical line stays thin. Explicit width + 1:1 aspect-ratio
+       because the SVG is width:100%/height:100% with no fixed intrinsic size. */
+    #pheader.pheader .twelve.columns:has(#logoLight, #logoDark) {
+        justify-items: center;
+        margin: 0;
+    }
+    #pheader.pheader #logoLight,
+    #pheader.pheader #logoDark {
+        width: 3.33rem;   /* ~60px — this site's root font is ~10px, so 1rem ≈ 10px */
+        max-width: none;
+        height: auto;
+        aspect-ratio: 1 / 1;
+    }
 }
 
 
